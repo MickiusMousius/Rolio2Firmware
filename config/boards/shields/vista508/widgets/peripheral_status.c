@@ -56,16 +56,7 @@ static void set_battery_status(struct zmk_widget_status *widget,
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
     widget->state.charging = state.usb_present;
 #endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
-
     widget->state.battery = state.level;
-
-    // Draw a new image
-    lv_obj_t *art = lv_img_create(widget->obj);
-
-    uint32_t random = sys_rand32_get() / (4294967295 / image_count);
-    lv_img_set_src(art, &image_list[random]);
-    lv_obj_align(art, LV_ALIGN_TOP_LEFT, 0, 21);
-
     draw_top(widget->obj, widget->cbuf, &widget->state);
 }
 
