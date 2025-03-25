@@ -160,7 +160,7 @@
 //          |                  |                |                 |          |           |                      |           |               |          |          |               |          // 
     &trans       &kp EXCL            &kp AT          &kp HASH       &kp DLLR   &kp PRCNT                          &kp CARET   &kp AMPERSAND   &kp STAR   &kp LPAR     &kp RPAR      &kp MINUS
 //          |                  |                |                 |          |           +--------+     +-------|           |               |                     |               |          // 
-   &trans    &kp LG(DOT)   &kp LEFT_BRACE   &kp RIGHT_BRACE   &kp PIPE   &kp EQUAL   &trans        &trans   &kp PRCNT     &kp PLUS      &kp LBKT   &kp RBKT   &kp BACKSLASH   &trans
+   &trans       &kp LG(DOT)      &kp LEFT_BRACE   &kp RIGHT_BRACE   &kp PIPE   &kp EQUAL   &trans        &trans   &kp PRCNT     &kp PLUS      &kp LBKT   &kp RBKT   &kp BACKSLASH   &trans
 //-----------------------------|                |                 |          |           |        |    |                    |               |          |          |--------------------------//
                                     &trans            &trans         &trans     &trans     &trans        &trans    &trans       &trans         &trans     &trans
 //                             +----------------|-----------------|----------|-----------|--------+    +--------|----------|----------------|----------|----------+                          //
