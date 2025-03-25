@@ -107,18 +107,6 @@
             bindings = <&macro_param_1to2>
                 , <&bt BT_SEL MACRO_PLACEHOLDER>;
         };
-        bltsel: bltsel {
-            display-name = "Bluetooth Profile Select With Layer Select";
-            compatible = "zmk,behavior-macro-two-param";
-            #binding-cells = <2>;
-            bindings = <&macro_param_1to2>
-                , <&bt BT_SEL MACRO_PLACEHOLDER>
-                , <&out OUT_BLE>
-                , <&macro_param_2to1>
-                , <&to MACRO_PLACEHOLDER>
-                , <&macro_param_2to1>
-                , <&df MACRO_PLACEHOLDER>;
-        };
         // Invoke MacOS dictation
         mac_talk: mac_talk {
             display-name = "MacOS Dictation";
@@ -292,13 +280,13 @@
             bindings = <
 //---------------------------------------------------------------------------------------+                        +------------------------------------------------------------------//
 //          |              |              |              |              |                |                        |          |          |          |          |          |           // 
- &out OUT_TOG &bltsel 0 MACOS &bltsel 1 MACOS &bltsel 2 MACOS &bltsel 3 WINDOWS &bltsel 4 WINDOWS                    &trans    &kp KP_N7  &kp KP_N8  &kp KP_N9   &trans     &trans
+ &out OUT_TOG   &btsel 0        &btsel 1      &btsel 2        &btsel 3       &btsel 4                                &trans     &kp N7     &kp N8     &kp N9     &trans     &trans
 //          |              |              |              |              |                |                        |          |          |          |          |          |           // 
-    &trans       &trans         &trans         &trans         &trans         &trans                                  &trans    &kp KP_N4  &kp KP_N5  &kp KP_N6   &trans     &trans
+    &trans       &trans         &trans         &trans         &trans         &trans                                  &trans     &kp N4     &kp N5     &kp N6     &trans     &trans
 //          |              |              |              |              |                +--------+     +---------|          |          |          |          |          |           // 
-    &trans     &bl BL_TOG       &bt BT_CLR   &bl BL_DEC     &bl BL_TOG      &bl BL_INC   &bl BL_TOG       &trans     &trans    &kp KP_N1  &kp KP_N2  &kp KP_N3   &trans     &trans
+    &trans     &bl BL_TOG       &bt BT_CLR   &bl BL_DEC     &bl BL_TOG      &bl BL_INC   &bl BL_TOG       &trans     &trans     &kp N1     &kp N2     &kp N3     &trans     &trans
 //-------------------------|              |              |              |                |        |     |         |          |          |          |          |----------------------//
-                               &trans          &trans         &trans         &trans        &trans         &trans     &trans    &kp KP_N0     &trans     &trans
+                               &trans        &df WINDOWS       &trans        &df MACOS     &trans         &trans     &trans     &kp N0     &trans     &trans
 //                         +--------------|--------------|--------------|----------------|--------+     +----------|---------|----------|----------|----------+                      //
             >;
         };
