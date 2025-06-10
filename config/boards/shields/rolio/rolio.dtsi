@@ -5,6 +5,7 @@
  */
 
 #include <dt-bindings/zmk/matrix_transform.h>
+#include <dt-bindings/led/led.h>
 #include "rolio46-layout.dtsi"
 
 &rolio46_layout {
@@ -17,6 +18,7 @@
     chosen {
         zmk,physical-layout = &rolio46_layout;
         zmk,kscan = &kscan0;
+        zmk,underglow = &led_strip;
     };
 
     default_transform: keymap_transform_0 {
