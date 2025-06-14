@@ -41,12 +41,12 @@
     status = "okay";
 };
 
-// &i2c0 {
-//     compatible = "nordic,nrf-twi";
-//     pinctrl-0 = <&i2c0_default>;
-//     pinctrl-1 = <&i2c0_sleep>;
-//     pinctrl-names = "default", "sleep";
-// };
+&i2c0 {
+    compatible = "nordic,nrf-twi";
+    pinctrl-0 = <&i2c0_default>;
+    pinctrl-1 = <&i2c0_sleep>;
+    pinctrl-names = "default", "sleep";
+};
 
 &spi0 {
     compatible = "nordic,nrf-spim";
@@ -66,7 +66,6 @@
 zephyr_udc0: &usbd {
     status = "okay";
 };
-
 
 &flash0 {
     /*
