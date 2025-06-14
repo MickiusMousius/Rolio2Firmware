@@ -48,7 +48,7 @@
             label = "Scroller Brightness Adjust";
             compatible = "zmk,behavior-sensor-rotate";
             #sensor-binding-cells = <0>;
-            bindings = <&bl BL_INC>, <&bl BL_DEC>;
+            bindings = <&rgb_ug RGB_BRI>, <&rgb_ug RGB_BRD>;
         };
         // Encoder to Mouse Scroll
         scroll_up_down: Mouse_Scroller {
@@ -119,6 +119,24 @@
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             bindings = <&df WINDOWS>;
+        };
+        // White Backlight
+        white_ug: white_ug {
+            display-name = "White Underglow";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&rgb_ug RGB_COLOR_HSB(0, 0, 25)>
+                ;
+        };
+        // Colorful Backlight
+        color_ug: color_ug {
+            display-name = "Colorful Underglow";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&rgb_ug RGB_COLOR_HSB(0, 100, 25)>
+                ;
         };
         // Invoke MacOS dictation
         mac_talk: mac_talk {
@@ -259,7 +277,7 @@
 //          |            |            |              |            |              |                           |          |          |           |                 |           |           // 
   &kp LS(TAB) &mac_talk      &trans      &kp C_PREV    &kp C_PP     &kp C_NEXT                              &kp LG(LEFT)  &kp UP  &kp LG(RIGHT)   &mac_cap_app     &kp PG_UP   &kp F12
 //          |            |            |              |            |              +-------------+    +--------+          |          |           |                 |           |           // 
-    &trans    &bl BL_TOG  &bl BL_SET 4  &kp C_VOL_DN   &kp C_MUTE   &kp C_VOL_UP    &kp C_MUTE     &mkp LCLK   &kp LEFT   &kp DOWN   &kp RIGHT    &kp LG(LS(N4))   &kp PG_DN    &kp F13
+   &trans   &rgb_ug RGB_TOG  &trans     &kp C_VOL_DN   &kp C_MUTE   &kp C_VOL_UP    &kp C_MUTE     &mkp LCLK   &kp LEFT   &kp DOWN   &kp RIGHT    &kp LG(LS(N4))   &kp PG_DN    &kp F13
 //-----------------------|            |              |            |              |             |    |        |          |          |           |         |-------------------------------//  
                             &trans         &trans       &trans        &trans        &trans            &trans    &trans    &trans      &trans     &trans
 //                       +------------|--------------|------------|--------------|-------------+    +--------|----------|----------|-----------|---------+                               //
@@ -278,7 +296,7 @@
 //          |            |            |              |            |              |                           |          |          |           |                 |           |           // 
   &kp LS(TAB) &kp LG(H)      &trans      &kp C_PREV    &kp C_PP     &kp C_NEXT                                  &kp HOME  &kp UP      &kp END  &kp LA(PRINTSCREEN) &kp PG_UP   &kp F12
 //          |            |            |              |            |              +-------------+    +--------+          |          |           |                 |           |           // 
-    &trans    &bl BL_TOG  &bl BL_SET 4  &kp C_VOL_DN   &kp C_MUTE   &kp C_VOL_UP    &kp C_MUTE     &mkp LCLK   &kp LEFT   &kp DOWN   &kp RIGHT    &kp LG(LS(S))    &kp PG_DN   &kp F13
+   &trans   &rgb_ug RGB_TOG  &trans     &kp C_VOL_DN   &kp C_MUTE   &kp C_VOL_UP    &kp C_MUTE     &mkp LCLK   &kp LEFT   &kp DOWN   &kp RIGHT    &kp LG(LS(S))    &kp PG_DN   &kp F13
 //-----------------------|            |              |            |              |             |    |        |          |          |           |         |-------------------------------//  
                             &trans         &trans       &trans        &trans        &trans            &trans    &trans    &trans      &trans     &trans
 //                       +------------|--------------|------------|--------------|-------------+    +--------|----------|----------|-----------|---------+                               //
@@ -295,9 +313,9 @@
 //          |              |              |              |              |                |                        |          |          |          |          |          |           // 
  &out OUT_TOG   &btsel 0        &btsel 1      &btsel 2        &btsel 3       &btsel 4                                &trans     &kp N7     &kp N8     &kp N9     &trans     &trans
 //          |              |              |              |              |                |                        |          |          |          |          |          |           // 
-    &trans       &trans         &trans         &trans         &trans         &trans                                  &trans     &kp N4     &kp N5     &kp N6     &trans     &trans
+    &trans       &trans         &trans     &rgb_ug RGB_EFF  &color_ug     &rgb_ug RGB_EFF                            &trans     &kp N4     &kp N5     &kp N6     &trans     &trans
 //          |              |              |              |              |                +--------+     +---------|          |          |          |          |          |           // 
-    &trans     &bl BL_TOG       &bt BT_CLR   &bl BL_DEC     &bl BL_TOG      &bl BL_INC   &bl BL_TOG       &trans     &trans     &kp N1     &kp N2     &kp N3     &trans     &trans
+    &trans   &rgb_ug RGB_TOG  &bt BT_CLR   &rgb_ug RGB_SPI  &white_ug     &rgb_ug RGB_SPI  &trans         &trans     &trans     &kp N1     &kp N2     &kp N3     &trans     &trans
 //-------------------------|              |              |              |                |        |     |         |          |          |          |          |----------------------//
                                &trans          &df_win        &trans        &df_mac        &trans         &trans     &trans     &kp N0     &trans     &trans
 //                         +--------------|--------------|--------------|----------------|--------+     +----------|---------|----------|----------|----------+                      //
