@@ -3,7 +3,7 @@ id: rolio
 name: Rolio
 type: shield
 url: https://github.com/MickiusMousius/rolio
-requires: [pro_micro]
+requires: [rolio3]
 features:
   - keys
   - encoder
