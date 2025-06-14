@@ -1,0 +1,9 @@
+file_format: "1"
+id: rolio3
+name: Rolio Core V3
+type: board
+arch: arm
+outputs:
+  - usb
+  - ble
+url: https://keydio.io
