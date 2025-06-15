@@ -7,6 +7,7 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 #include <dt-bindings/led/led.h>
 #include "rolio46-layout.dtsi"
+#include "control_gpio_behavior.dtsi"
 
 &rolio46_layout {
     kscan = <&kscan0>;
@@ -65,6 +66,13 @@
         compatible = "zmk,keymap-sensors";
         sensors = <&encoder_left &encoder_right>;
         triggers-per-rotation = <15>;
+    };
+
+    underglow_power: underglow_power {
+        compatible = "zmk,control-gpio";
+        blen: blen {
+            gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+        };
     };
 
 };
