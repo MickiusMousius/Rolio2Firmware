@@ -68,10 +68,15 @@
         triggers-per-rotation = <15>;
     };
 
-    underglow_power: underglow_power {
+    peripheral_power_domains: peripheral_power_domains {
         compatible = "zmk,control-gpio";
-        blen: blen {
+        underglow_power: underglow_power {
             gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+        };
+        haptic_enable: haptic_enable {
+            gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
+                        starting-state-on;
+
         };
     };
 
