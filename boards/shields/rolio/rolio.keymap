@@ -126,7 +126,7 @@
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             bindings
-                = <&rgb_ug RGB_COLOR_HSB(0, 0, 25)>
+                = <&rgb_ug RGB_COLOR_HSB(0, 0, 15)>
                 ;
         };
         // Colorful Backlight
@@ -135,7 +135,7 @@
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             bindings
-                = <&rgb_ug RGB_COLOR_HSB(0, 100, 25)>
+                = <&rgb_ug RGB_COLOR_HSB(0, 100, 20)>
                 ;
         };
         // Invoke MacOS dictation
@@ -182,7 +182,7 @@
             bindings = <
 //----------------------------------------------------------------+                                        +---------------------------------------------------------------//
 //          |         |          |           |          |         |                                        |       |       |           |         |          |           // 
-  &kp GRAVE   &rgb_ug RGB_EFF      &rgb_ug RGB_BRD  &rgb_ug RGB_BRI &rgb_ug RGB_HUD  &rgb_ug RGB_HUI                             &kp Y   &kp U     &kp I      &kp O     &kp P       &mt LA(BSPC) BSPC
+  &kp GRAVE   &kp Q     &kp W      &kp E        &kp R     &kp T                                              &kp Y   &kp U     &kp I      &kp O     &kp P       &mt LA(BSPC) BSPC
 //          |         |          |           |          |         |                                        |       |       |           |         |          |           //
   &kp TAB     &kp A     &kp S      &kp D        &kp F     &kp G                                              &kp H   &kp J     &kp K      &kp L    &kp SEMI    &kp SQT
 //          |         |          |           |          |         +--------------------+ +-----------------|       |       |           |         |          |           //
