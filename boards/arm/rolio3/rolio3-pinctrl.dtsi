@@ -37,4 +37,21 @@
             low-power-enable;
         };
     };
+
+    // Enable backlight controls
+    pwm0_default: pwm0_default {
+        group1 {
+            // Use P0.08 for LED backlight
+            psels = <NRF_PSEL(PWM_OUT0, 1, 13)>;
+          };
+    };
+
+    pwm0_sleep: pwm0_sleep {
+        group1 {
+            // Use P0.08 for LED backlight
+            psels = <NRF_PSEL(PWM_OUT0, 1, 13)>;
+            low-power-enable;
+          };
+    };
+
 };

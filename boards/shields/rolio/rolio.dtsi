@@ -20,6 +20,7 @@
         zmk,physical-layout = &rolio46_layout;
         zmk,kscan = &kscan0;
         zmk,underglow = &led_strip;
+        zmk,backlight = &underglow_power;
     };
 
     default_transform: keymap_transform_0 {
@@ -68,11 +69,15 @@
         triggers-per-rotation = <15>;
     };
 
+    underglow_power: underglow_power {
+        compatible = "pwm-leds";
+        underglow_power {
+            pwms = <&pwm0 0 10000 PWM_POLARITY_NORMAL>;
+        };
+    };
+
     peripheral_power_domains: peripheral_power_domains {
         compatible = "zmk,control-gpio";
-        underglow_power: underglow_power {
-            gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
-        };
         haptic_enable: haptic_enable {
             gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
                         starting-state-on;

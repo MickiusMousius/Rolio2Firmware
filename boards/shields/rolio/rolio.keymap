@@ -125,8 +125,7 @@
             display-name = "Toggle Underglow";
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
-            bindings = <&gpc GP_TOG(0)>, <&rgb_ug RGB_TOG>
-;
+            bindings = <&bl BL_TOG>, <&rgb_ug RGB_TOG>;
         };
         // White Backlight
         white_ug: white_ug {
@@ -134,7 +133,7 @@
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             bindings
-                = <&gpc GP_ON(0)>
+                = <&bl BL_ON>
                 , <&rgb_ug RGB_ON>
                 , <&rgb_ug RGB_COLOR_HSB(0, 0, 15)>
                 ;
@@ -145,9 +144,9 @@
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             bindings
-                = <&gpc GP_ON(0)>
+                = <&bl BL_ON>
                 , <&rgb_ug RGB_ON>
-                , <&rgb_ug RGB_COLOR_HSB(0, 100, 20)>
+                , <&rgb_ug RGB_COLOR_HSB(304, 100, 20)>
                 ;
         };
         // Invoke MacOS dictation
