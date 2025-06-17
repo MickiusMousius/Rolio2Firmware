@@ -25,6 +25,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/endpoints.h>
 #include <zmk/keymap.h>
 #include <zmk/wpm.h>
+#include <zmk/backlight.h>
+#include <zmk/rgb_underglow.h>
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -51,6 +53,11 @@ static void draw_top(lv_obj_t *widget, lv_color_t cbuf[], const struct status_st
     init_label_dsc(&label_dsc, LVGL_FOREGROUND, &lv_font_montserrat_16, LV_TEXT_ALIGN_RIGHT);
     lv_draw_label_dsc_t label_dsc_wpm;
     init_label_dsc(&label_dsc_wpm, LVGL_FOREGROUND, &lv_font_montserrat_12, LV_TEXT_ALIGN_RIGHT);
+    lv_draw_label_dsc_t label_setting;
+    init_label_dsc(&label_setting, LVGL_FOREGROUND, &lv_font_montserrat_16, LV_TEXT_ALIGN_LEFT);
+    lv_draw_label_dsc_t label_setting_val;
+    init_label_dsc(&label_setting_val, LVGL_FOREGROUND, &lv_font_montserrat_16,
+                   LV_TEXT_ALIGN_RIGHT);
     lv_draw_rect_dsc_t rect_black_dsc;
     init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
     lv_draw_rect_dsc_t rect_white_dsc;
@@ -91,6 +98,53 @@ static void draw_top(lv_obj_t *widget, lv_color_t cbuf[], const struct status_st
     lv_canvas_draw_rect(canvas, 0, 21, CANVAS_SIZE, WPM_HEIGHT, &rect_white_dsc);
     lv_canvas_draw_rect(canvas, 2, 23, CANVAS_SIZE - 4, WPM_HEIGHT - 4, &rect_black_dsc);
 
+    // Draw various settings values if in the settings layer
+    const int boxLeft = 5;
+    const int boxRight = 9;
+    const int boxTop = 19;
+    if (state->layer_index != 7) {
+        const int rowHeight = 18;
+        int rowOffset = 5;
+        // Determine if the backlight is on
+        bool backLightOn = zmk_backlight_is_on();
+        lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
+                            "Backlight:");
+        if (backLightOn) {
+            lv_canvas_draw_text(canvas, boxLeft, boxTop + rowOffset, CANVAS_SIZE - boxRight,
+                                &label_setting_val, "On");
+        } else {
+            lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
+                                &label_setting_val, "Off");
+        }
+        // Obtain RGB underglow detail
+        struct rgb_underglow_state ugState = zmk_rgb_underglow_get_state_detail();
+        // Show backlight brightness
+        rowOffset += rowHeight;
+        uint8_t backLightBrightness = ugState.color.b;
+        char brightValText[5] = {};
+        sprintf(brightValText, "%i%%", backLightBrightness);
+        lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
+                            "Brightness:");
+        lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
+                            &label_setting_val, brightValText);
+        // Show backlight effect
+        rowOffset += rowHeight;
+        uint8_t ugEffect = ugState.current_effect;
+        char *effectNames[] = {"Solid", "Breathe", "Cycle", "Swirl"};
+        lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
+                            "Effect:");
+        lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
+                            &label_setting_val, effectNames[ugEffect]);
+        // Show backlight color
+        rowOffset += rowHeight;
+        lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
+                            "Color:");
+        lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
+                            &label_setting_val, "White");
+        return;
+    }
+
+    // Draw the pretty graph if we're not in the settings layer
     char wpm_text[6] = {};
     snprintf(wpm_text, sizeof(wpm_text), "%d", state->wpm[WPM_SAMPLES - 1]);
     lv_canvas_draw_text(canvas, CANVAS_SIZE - 29, 3 + WPM_HEIGHT, 24, &label_dsc_wpm, wpm_text);
@@ -121,7 +175,8 @@ static void draw_top(lv_obj_t *widget, lv_color_t cbuf[], const struct status_st
     lv_canvas_draw_line(canvas, points, WPM_SAMPLES, &line_dsc);
 }
 
-static void draw_middle(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
+static void darw_bluetooth_profile(lv_obj_t *widget, lv_color_t cbuf[],
+                                   const struct status_state *state) {
     lv_obj_t *canvas = lv_obj_get_child(widget, 1);
 
     lv_draw_rect_dsc_t rect_black_dsc;
@@ -163,7 +218,7 @@ static void draw_middle(lv_obj_t *widget, lv_color_t cbuf[], const struct status
     }
 }
 
-static void draw_bottom(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
+static void draw_layer_name(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
     lv_obj_t *canvas = lv_obj_get_child(widget, 2);
 
     lv_draw_rect_dsc_t rect_black_dsc;
@@ -227,7 +282,7 @@ static void set_output_status(struct zmk_widget_status *widget,
     widget->state.active_profile_bonded = state->active_profile_bonded;
 
     draw_top(widget->obj, widget->cbuf, &widget->state);
-    draw_middle(widget->obj, widget->cbuf2, &widget->state);
+    darw_bluetooth_profile(widget->obj, widget->cbuf2, &widget->state);
 }
 
 static void output_status_update_cb(struct output_status_state state) {
@@ -259,7 +314,7 @@ static void set_layer_status(struct zmk_widget_status *widget, struct layer_stat
     widget->state.layer_index = state.index;
     widget->state.layer_label = state.label;
 
-    draw_bottom(widget->obj, widget->cbuf3, &widget->state);
+    draw_layer_name(widget->obj, widget->cbuf3, &widget->state);
 }
 
 static void layer_status_update_cb(struct layer_status_state state) {
@@ -305,9 +360,11 @@ int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
     lv_obj_t *top = lv_canvas_create(widget->obj);
     lv_obj_align(top, LV_ALIGN_TOP_LEFT, 0, 0);
     lv_canvas_set_buffer(top, widget->cbuf, CANVAS_SIZE, CANVAS_SIZE, LV_IMG_CF_TRUE_COLOR);
+    // Bluetooth connection widget
     lv_obj_t *middle = lv_canvas_create(widget->obj);
     lv_obj_align(middle, LV_ALIGN_TOP_LEFT, 0, 110);
     lv_canvas_set_buffer(middle, widget->cbuf2, CANVAS_SIZE, CANVAS_SIZE, LV_IMG_CF_TRUE_COLOR);
+    // Layer Label Widget
     lv_obj_t *bottom = lv_canvas_create(widget->obj);
     lv_obj_align(bottom, LV_ALIGN_TOP_MID, 0, 136);
     lv_canvas_set_buffer(bottom, widget->cbuf3, CANVAS_SIZE, CANVAS_SIZE, LV_IMG_CF_TRUE_COLOR);
