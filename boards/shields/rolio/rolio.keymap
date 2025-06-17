@@ -135,7 +135,7 @@
             bindings
                 = <&bl BL_ON>
                 , <&rgb_ug RGB_ON>
-                , <&rgb_ug RGB_COLOR_HSB(0, 0, 15)>
+                , <&rgb_ug RGB_COLOR_HSB(0, 0, 49)>
                 ;
         };
         // Colorful Backlight
@@ -146,7 +146,7 @@
             bindings
                 = <&bl BL_ON>
                 , <&rgb_ug RGB_ON>
-                , <&rgb_ug RGB_COLOR_HSB(304, 100, 20)>
+                , <&rgb_ug RGB_COLOR_HSB(304, 100, 69)>
                 ;
         };
         // Invoke MacOS dictation

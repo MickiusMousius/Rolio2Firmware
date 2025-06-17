@@ -105,42 +105,53 @@ static void draw_top(lv_obj_t *widget, lv_color_t cbuf[], const struct status_st
     if (state->layer_index != 7) {
         const int rowHeight = 18;
         int rowOffset = 5;
-        // Determine if the backlight is on
+        // Get our settings state
         bool backLightOn = zmk_backlight_is_on();
+        struct rgb_underglow_state ugState = zmk_rgb_underglow_get_state_detail();
+        // Show if the backlight is on
         lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
                             "Backlight:");
         if (backLightOn) {
-            lv_canvas_draw_text(canvas, boxLeft, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-                                &label_setting_val, "On");
+            uint8_t backLightBrightness = ugState.current_effect == 1 ? 100 : ugState.color.b + 1;
+            char brightValText[5] = {};
+            sprintf(brightValText, "%i%%", backLightBrightness < 100 ? backLightBrightness : 100);
+            lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
+                                &label_setting_val, brightValText);
+
         } else {
             lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
                                 &label_setting_val, "Off");
         }
-        // Obtain RGB underglow detail
-        struct rgb_underglow_state ugState = zmk_rgb_underglow_get_state_detail();
-        // Show backlight brightness
-        rowOffset += rowHeight;
-        uint8_t backLightBrightness = ugState.color.b;
-        char brightValText[5] = {};
-        sprintf(brightValText, "%i%%", backLightBrightness);
-        lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
-                            "Brightness:");
-        lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-                            &label_setting_val, brightValText);
+        // // Show backlight brightness
+        // rowOffset += rowHeight;
+        // uint8_t backLightBrightness = ugState.color.b;
+        // char brightValText[5] = {};
+        // sprintf(brightValText, "%i%%", backLightBrightness);
+        // lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
+        //                     "Brightness:");
+        // lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
+        //                     &label_setting_val, brightValText);
         // Show backlight effect
         rowOffset += rowHeight;
-        uint8_t ugEffect = ugState.current_effect;
         char *effectNames[] = {"Solid", "Breathe", "Cycle", "Swirl"};
         lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
                             "Effect:");
         lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-                            &label_setting_val, effectNames[ugEffect]);
+                            &label_setting_val, effectNames[ugState.current_effect]);
         // Show backlight color
         rowOffset += rowHeight;
         lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
                             "Color:");
-        lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-                            &label_setting_val, "White");
+        if (ugState.color.s == 0) {
+            lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
+                                &label_setting_val, "White");
+        } else if (ugState.current_effect > 1) {
+            lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
+                                &label_setting_val, "Rainbow");
+        } else {
+            lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
+                                &label_setting_val, "Unknown");
+        }
         return;
     }
 
