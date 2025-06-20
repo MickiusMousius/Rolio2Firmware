@@ -80,8 +80,6 @@
         compatible = "zmk,control-gpio";
         haptic_enable: haptic_enable {
             gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
-                        starting-state-on;
-
         };
     };
 
