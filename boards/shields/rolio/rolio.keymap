@@ -121,11 +121,17 @@
             bindings = <&df WINDOWS>;
         };
         // Toggle Backlight
-        toggle_ug: toggle_ug {
-            display-name = "Toggle Underglow";
+        ug_on: ug_on {
+            display-name = "Underglow On";
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
-            bindings = <&bl BL_TOG>, <&rgb_ug RGB_TOG>;
+            bindings = <&bl BL_ON>, <&rgb_ug RGB_ON>;
+        };
+        ug_off: ug_off {
+            display-name = "Underglow Off";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings = <&bl BL_OFF>, <&rgb_ug RGB_OFF>;
         };
         // White Backlight
         white_ug: white_ug {
@@ -288,7 +294,7 @@
 //          |            |            |              |            |              |                           |          |          |           |                 |           |           // 
   &kp LS(TAB) &mac_talk      &trans      &kp C_PREV    &kp C_PP     &kp C_NEXT                              &kp LG(LEFT)  &kp UP  &kp LG(RIGHT)   &mac_cap_app     &kp PG_UP   &kp F12
 //          |            |            |              |            |              +-------------+    +--------+          |          |           |                 |           |           // 
-   &trans     &toggle_ug     &trans     &kp C_VOL_DN   &kp C_MUTE   &kp C_VOL_UP    &kp C_MUTE     &mkp LCLK   &kp LEFT   &kp DOWN   &kp RIGHT    &kp LG(LS(N4))   &kp PG_DN    &kp F13
+   &trans     &ug_on       &ug_off     &kp C_VOL_DN   &kp C_MUTE   &kp C_VOL_UP    &kp C_MUTE     &mkp LCLK   &kp LEFT   &kp DOWN   &kp RIGHT    &kp LG(LS(N4))   &kp PG_DN    &kp F13
 //-----------------------|            |              |            |              |             |    |        |          |          |           |         |-------------------------------//  
                             &trans         &trans       &trans        &trans        &trans            &trans    &trans    &trans      &trans     &trans
 //                       +------------|--------------|------------|--------------|-------------+    +--------|----------|----------|-----------|---------+                               //
@@ -307,7 +313,7 @@
 //          |            |            |              |            |              |                           |          |          |           |                 |           |           // 
   &kp LS(TAB) &kp LG(H)      &trans      &kp C_PREV    &kp C_PP     &kp C_NEXT                                  &kp HOME  &kp UP      &kp END  &kp LA(PRINTSCREEN) &kp PG_UP   &kp F12
 //          |            |            |              |            |              +-------------+    +--------+          |          |           |                 |           |           // 
-   &trans     &toggle_ug     &trans     &kp C_VOL_DN   &kp C_MUTE   &kp C_VOL_UP    &kp C_MUTE     &mkp LCLK   &kp LEFT   &kp DOWN   &kp RIGHT    &kp LG(LS(S))    &kp PG_DN   &kp F13
+   &trans     &ug_on        &ug_off      &kp C_VOL_DN   &kp C_MUTE   &kp C_VOL_UP    &kp C_MUTE     &mkp LCLK   &kp LEFT   &kp DOWN   &kp RIGHT    &kp LG(LS(S))    &kp PG_DN   &kp F13
 //-----------------------|            |              |            |              |             |    |        |          |          |           |         |-------------------------------//  
                             &trans         &trans       &trans        &trans        &trans            &trans    &trans    &trans      &trans     &trans
 //                       +------------|--------------|------------|--------------|-------------+    +--------|----------|----------|-----------|---------+                               //
@@ -326,7 +332,7 @@
 //          |              |              |              |              |                |                        |          |          |          |          |          |           // 
     &trans       &trans         &trans     &rgb_ug RGB_EFF  &color_ug     &rgb_ug RGB_EFF                            &trans     &kp N4     &kp N5     &kp N6     &trans     &trans
 //          |              |              |              |              |                +--------+     +---------|          |          |          |          |          |           // 
-    &trans     &toggle_ug     &bt BT_CLR   &rgb_ug RGB_SPI  &white_ug     &rgb_ug RGB_SPI  &trans         &trans     &trans     &kp N1     &kp N2     &kp N3     &trans     &trans
+    &trans       &trans     &bt BT_CLR   &rgb_ug RGB_SPI  &white_ug     &rgb_ug RGB_SPI  &trans         &trans     &trans     &kp N1     &kp N2     &kp N3     &trans     &trans
 //-------------------------|              |              |              |                |        |     |         |          |          |          |          |----------------------//
                                &trans          &df_win        &trans        &df_mac        &trans         &trans     &trans     &kp N0     &trans     &trans
 //                         +--------------|--------------|--------------|----------------|--------+     +----------|---------|----------|----------|----------+                      //
