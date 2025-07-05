@@ -9,12 +9,16 @@
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/outputs.h>
 #include <dt-bindings/zmk/backlight.h>
-#include <dt-bindings/zmk/pointing.h>
 #include "elpekenin/behaviors.dtsi"
 #include <dt-bindings/zmk/rgb.h>
 
 #define ZMK_POINTING_DEFAULT_SCRL_VAL 100
+#include <dt-bindings/zmk/pointing.h>
 
+// Helpful macros borrowed from AndrewMSHowe
+#define ___ &trans
+
+// Layer numbers for use by the keymap & macros
 #define MACOS     0
 #define WINDOWS   1
 #define M_SYMBOLS 2
@@ -80,6 +84,15 @@
             require-prior-idle-ms = <125>;
             bindings = <&out>, <&kp>;
         };
+        // Hold to clear BT connection or tap for key press
+        btclr_kp: btclr_kp {
+            display-name = "Bluetooth Profile Clear Or Key Press";
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "tap-preferred";
+            tapping-term-ms = <2000>;
+            bindings = <&btclrmacro>, <&kp>;
+        };
         // Small volume steps for MacOS
         mac_vol: Mac_Volume_Scroller {
             label = "Scroller MacOS Small Volume Steps";
@@ -96,6 +109,15 @@
             flavor = "tap-preferred";
             bindings = <&kpss>, <&kp>;
         };
+        // Shift / Capsword
+         scw: scw {
+            display-name = "Hold Shift / Tap Capsword";
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "hold-preferred";
+            tapping-term-ms = <200>;
+            bindings = <&kp>, <&caps_word>;
+        };
     };
 
     macros{
@@ -106,6 +128,13 @@
             #binding-cells = <1>;
             bindings = <&macro_param_1to2>
                 , <&bt BT_SEL MACRO_PLACEHOLDER>;
+        };
+        // Select bluetooth profile helper  for behaviours
+        btclrmacro: btclrmacro {
+            display-name = "Bluetooth Profile Clear";
+            compatible = "zmk,behavior-macro-one-param";
+            #binding-cells = <1>;
+            bindings = <&bt BT_CLR>;
         };
         // Utilities so that Studio's use of "df" looks nice
         df_mac: df_mac {
@@ -197,88 +226,64 @@
             display-name = "MacOS";
             sensor-bindings = <&inc_dec_kp UP DOWN &inc_dec_kp LEFT RIGHT>;
             bindings = <
-//----------------------------------------------------------------+                                        +---------------------------------------------------------------//
-//          |         |          |           |          |         |                                        |       |       |           |         |          |           // 
-  &kp GRAVE   &kp N1             &kp N2           &kp N3         &kp N4     &kp N5                                             &kp Y   &kp U     &kp I      &kp O     &kp P       &mt LA(BSPC) BSPC
-//          |         |          |           |          |         |                                        |       |       |           |         |          |           //
-  &kp TAB      &kp N6        &kp N7        &kp N8     &kp N9       &kp N0                                               &kp H   &kp J     &kp K      &kp L    &kp SEMI    &kp SQT
-//          |         |          |           |          |         +--------------------+ +-----------------|       |       |           |         |          |           //
-  &kp LSHIFT  &kp Z     &kp X      &kp C        &kp V     &kp B      &kp F16                  &kp F17        &kp N   &kp M   &kp COMMA   &kp DOT    &kp FSLH   &kp RSHIFT
-//--------------------|          |           |          |         |                    | |                 |       |       |            |--------------------------------//  
-                     &mo KB_CONFIG  &kp LALT   &kp LCTRL  &kp LGUI   &lt M_FKEYS ENTER    &lt NUMPAD SPACE   &td1   &kp RGUI  &kp RCTRL   &kp DEL
-//                    +----------|-----------|----------|-----------------------------+  +-----------------|-------|--------|-----------|---------+                      //
+// ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮                                 ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
+       &kp GRAVE      &kp Q            &kp W           &kp E           &kp R           &kp T     /*|                                 |*/  &kp Y          &kp U           &kp I           &kp O           &kp P          &mt LA(BSPC) BSPC
+       &kp TAB        &kp A            &kp S           &kp D           &kp F           &kp G     /*├─────────────╮     ╭─────────────┤*/  &kp H          &kp J           &kp K           &kp L           &kp SEMI       &kp SQT
+       &kp LSHIFT     &kp Z            &kp X           &kp C           &kp V           &kp B           &kp F16             &kp F17        &kp N          &kp M           &kp COMMA       &kp DOT         &kp FSLH       &scw RSHIFT 0
+/* ╰───────────────┴───────────────┤*/ &mo KB_CONFIG   &kp LALT        &kp LCTRL       &kp LGUI   &lt M_FKEYS ENTER   &lt NUMPAD SPACE    &td1           &mt RGUI K_APP  &kp RCTRL       &kp DEL   //├───────────────┴───────────────╯
+//                                 ╰───────────────┴───────────────┴───────────────┴───────────────┴─────────────╯     ╰─────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             >;
         };
-
 
         windows_default_layer {
             display-name = "Windows";
             sensor-bindings = <&inc_dec_kp UP DOWN &inc_dec_kp LEFT RIGHT>;
             bindings = <
-//----------------------------------------------------------------+                                        +---------------------------------------------------------------//
-//          |         |          |           |          |         |                                        |       |       |           |         |          |           // 
-  &kp GRAVE   &kp Q     &kp W      &kp E        &kp R     &kp T                                             &kp Y   &kp U     &kp I      &kp O     &kp P       &mt LC(BSPC) BSPC
-//          |         |          |           |          |         |                                        |       |       |           |         |          |           //
-  &kp TAB     &kp A     &kp S      &kp D        &kp F     &kp G                                              &kp H   &kp J     &kp K      &kp L    &kp SEMI    &kp SQT
-//          |         |          |           |          |         +--------------------+ +-----------------|       |       |           |         |          |           //
-  &kp LSHIFT  &kp Z     &kp X      &kp C        &kp V     &kp B      &kp F16                  &kp F17        &kp N   &kp M   &kp COMMA   &kp DOT    &kp FSLH   &kp RSHIFT
-//--------------------|          |           |          |         |                    | |                 |       |       |            |--------------------------------//  
-                     &mo KB_CONFIG  &kp LGUI   &kp LALT  &kp LCTRL   &lt W_FKEYS ENTER     &lt NUMPAD SPACE  &td2  &kp RCTRL  &kp RALT   &kp DEL
-//                    +----------|-----------|----------|-----------------------------+  +-----------------|-------|--------|-----------|---------+                      //
+// ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮                                 ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
+       &kp GRAVE      &kp Q            &kp W           &kp E           &kp R           &kp T     /*|                                 |*/  &kp Y          &kp U           &kp I           &kp O           &kp P          &mt LC(BSPC) BSPC
+       &kp TAB        &kp A            &kp S           &kp D           &kp F           &kp G     /*├─────────────╮     ╭─────────────┤*/  &kp H          &kp J           &kp K           &kp L           &kp SEMI       &kp SQT
+       &kp LSHIFT     &kp Z            &kp X           &kp C           &kp V           &kp B           &kp F16             &kp F17        &kp N          &kp M           &kp COMMA       &kp DOT         &kp FSLH       &scw RSHIFT 0
+/* ╰───────────────┴───────────────┤*/ &mo KB_CONFIG   &kp LGUI        &kp LALT        &kp LCTRL   &lt W_FKEYS ENTER   &lt NUMPAD SPACE   &td2        &mt RCTRL K_APP    &kp RALT        &kp DEL   //├───────────────┴───────────────╯
+//                                 ╰───────────────┴───────────────┴───────────────┴───────────────┴─────────────╯     ╰─────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             >;
         };
-
 
         macos_symbols_layer {
             display-name = "Symbols (Mac)";
             sensor-bindings = <&inc_dec_kp UP DOWN &inc_dec_kp LEFT RIGHT>;
             bindings = <
-//---------------------------------------------------------------------------------------+                      +----------------------------------------------------------------------------//
-//          |                  |                |                 |          |           |                      |           |               |          |          |               |          // 
-  &kp UNDER       &kp N1             &kp N2           &kp N3         &kp N4     &kp N5                             &kp N6        &kp N7        &kp N8     &kp N9       &kp N0        &trans
-//          |                  |                |                 |          |           |                      |           |               |          |          |               |          // 
-    &trans       &kp EXCL            &kp AT          &kp HASH       &kp DLLR   &kp PRCNT                          &kp CARET   &kp AMPERSAND   &kp STAR   &kp LPAR     &kp RPAR      &kp MINUS
-//          |                  |                |                 |          |           +--------+     +-------|           |               |                     |               |          // 
-   &trans    &kp LC(LG(SPACE))   &kp LEFT_BRACE   &kp RIGHT_BRACE   &kp PIPE   &kp EQUAL   &trans        &trans   &kp PRCNT     &kp PLUS      &kp LBKT   &kp RBKT   &kp BACKSLASH   &trans
-//-----------------------------|                |                 |          |           |        |    |                    |               |          |          |--------------------------//
-                                    &trans            &trans         &trans     &trans     &trans        &trans    &trans       &trans         &trans     &kp SPACE
-//                             +----------------|-----------------|----------|-----------|--------+    +--------|----------|----------------|----------|----------+                          //
+// ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮                                 ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
+       &kp UNDER       &kp N1          &kp N2          &kp N3          &kp N4          &kp N5    /*|                                 |*/  &kp N6         &kp N7          &kp N8          &kp N9          &kp N0          &kp DEL
+       ___             &kp EXCL        &kp AT          &kp HASH        &kp DLLR        &kp PRCNT /*├─────────────╮     ╭─────────────┤*/  &kp CARET      &kp AMPERSAND   &kp STAR        &kp LPAR        &kp RPAR        &kp MINUS
+       ___         &kp LC(LG(SPACE))   &kp LEFT_BRACE  &kp RIGHT_BRACE &kp PIPE        &kp EQUAL       ___                 ___            &kp PRCNT      &kp PLUS        &kp LBKT        &kp RBKT        &kp BACKSLASH   ___
+/* ╰───────────────┴───────────────┤*/ ___             ___             ___             ___             ___                 ___            ___            ___             ___             ___       //├───────────────┴───────────────╯
+//                                 ╰───────────────┴───────────────┴───────────────┴───────────────┴─────────────╯     ╰─────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             >;
         };
-
 
         windows_symbols_layer {
             display-name = "Symbols (Win)";
             sensor-bindings = <&inc_dec_kp UP DOWN &inc_dec_kp LEFT RIGHT>;
             bindings = <
-//---------------------------------------------------------------------------------------+                      +----------------------------------------------------------------------------//
-//          |                  |                |                 |          |           |                      |           |               |          |          |               |          // 
-  &kp UNDER       &kp N1             &kp N2           &kp N3         &kp N4     &kp N5                             &kp N6        &kp N7        &kp N8     &kp N9       &kp N0        &trans
-//          |                  |                |                 |          |           |                      |           |               |          |          |               |          // 
-    &trans       &kp EXCL            &kp AT          &kp HASH       &kp DLLR   &kp PRCNT                          &kp CARET   &kp AMPERSAND   &kp STAR   &kp LPAR     &kp RPAR      &kp MINUS
-//          |                  |                |                 |          |           +--------+     +-------|           |               |                     |               |          // 
-   &trans       &kp LG(DOT)      &kp LEFT_BRACE   &kp RIGHT_BRACE   &kp PIPE   &kp EQUAL   &trans        &trans   &kp PRCNT     &kp PLUS      &kp LBKT   &kp RBKT   &kp BACKSLASH   &trans
-//-----------------------------|                |                 |          |           |        |    |                    |               |          |          |--------------------------//
-                                    &trans            &trans         &trans     &trans     &trans        &trans    &trans       &trans         &trans     &trans
-//                             +----------------|-----------------|----------|-----------|--------+    +--------|----------|----------------|----------|----------+                          //
+// ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮                                 ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
+       &kp UNDER       &kp N1          &kp N2          &kp N3          &kp N4          &kp N5    /*|                                 |*/  &kp N6         &kp N7          &kp N8          &kp N9          &kp N0          &kp DEL
+       ___             &kp EXCL        &kp AT          &kp HASH        &kp DLLR        &kp PRCNT /*├─────────────╮     ╭─────────────┤*/  &kp CARET      &kp AMPERSAND   &kp STAR        &kp LPAR        &kp RPAR        &kp MINUS
+       ___             &kp LG(DOT)     &kp LEFT_BRACE  &kp RIGHT_BRACE &kp PIPE        &kp EQUAL       ___                 ___            &kp PRCNT      &kp PLUS        &kp LBKT        &kp RBKT        &kp BACKSLASH   ___
+/* ╰───────────────┴───────────────┤*/ ___             ___             ___             ___             ___                 ___            ___            ___             ___             ___       //├───────────────┴───────────────╯
+//                                 ╰───────────────┴───────────────┴───────────────┴───────────────┴─────────────╯     ╰─────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             >;
         };
-
 
         numpad_layer {
             display-name = "Number Pad";
             sensor-bindings = <&inc_dec_kp UP DOWN &inc_dec_kp LEFT RIGHT>;
             bindings = <
-//-----------------------------------------------------------------+                        +-----------------------------------------------------------------------------------------------//
-//          |          |          |          |          |          |                        |           |               |                 |                |                  |             // 
-    &trans    &kp N1      &kp N2    &kp N3     &kp N4     &kp N5                              &kp N6         &kp KP_N7    &kp KP_N8        &kp KP_N9        &kp N0             &trans 
-//          |          |          |          |          |          |                        |           |               |                 |                |                  |             // 
-    &trans    &kp EXCL    &kp AT    &kp HASH   &kp DLLR   &kp PRCNT                           &kp CARET      &kp KP_N4    &kp KP_N5        &mt LPAR KP_N6   &mt RPAR KP_PLUS   &kp KP_MINUS
-//          |          |          |          |          |          +--------+     +---------|           |               |                 |                |                  |             // 
-    &trans     &trans     &trans     &trans     &trans    &kp EQUAL  &trans         &trans    &kp PRCNT      &kp KP_N1    &mt COMMA KP_N2  &mt DOT KP_N3    &kp KP_DIVIDE      &kp KP_MULTIPLY
-//---------------------|          |          |          |          |        |     |         |           |               |                 |                |--------------------------------//
-                          &trans     &trans     &trans     &trans    &trans         &trans   &tog NUMPAD     &kp KP_N0    &kp KP_DOT       &trans
-//                     +----------|----------|----------|----------|--------+     +---------|-----------|---------------|-----------------|----------------+                                //
+// ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮                                 ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
+       ___             &kp N1          &kp N2          &kp N3          &kp N4          &kp N5    /*|                                 |*/    &kp N6         &kp N7          &kp N8          &kp N9          &kp N0          ___ 
+       ___             &kp EXCL        &kp AT          &kp HASH        &kp DLLR        &kp PRCNT /*├─────────────╮     ╭─────────────┤*/  &kp CARET      &kp N4          &kp N5          &mt LPAR N6     &mt RPAR PLUS   &kp MINUS
+       ___             ___             &kp LEFT_BRACE  &kp RIGHT_BRACE &kp PIPE        &kp EQUAL       ___                 ___            &kp PRCNT      &kp N1          &mt COMMA N2    &mt DOT N3      &kp KP_DIVIDE   &kp KP_MULTIPLY
+/* ╰───────────────┴───────────────┤*/ ___             ___             ___             ___             ___                 ___            &tog NUMPAD    &kp N0          &kp KP_DOT      ___       //├───────────────┴───────────────╯
+//                                 ╰───────────────┴───────────────┴───────────────┴───────────────┴─────────────╯     ╰─────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             >;
       };
 
@@ -287,36 +292,25 @@
             display-name = "F Keys (Mac)";
             sensor-bindings = <&mac_vol &scroll_up_down>;
             bindings = <
-//-------------------------------------------------------------------------------+                           +---------------------------------------------------------------------------//
-//          |            |            |              |            |              |                           |          |          |           |                 |           |           // 
-  &usb_tog OUT_TOG ESCAPE
-              &btkp 0 F1   &btkp 1 F2    &btkp 2 F3    &btkp 3 F4   &btkp 4 F5                                  &kp F6    &kp F7      &kp F8         &kp F9        &kp F10     &kp F11
-//          |            |            |              |            |              |                           |          |          |           |                 |           |           // 
-  &kp LS(TAB) &mac_talk      &trans      &kp C_PREV    &kp C_PP     &kp C_NEXT                              &kp LG(LEFT)  &kp UP  &kp LG(RIGHT)   &mac_cap_app     &kp PG_UP   &kp F12
-//          |            |            |              |            |              +-------------+    +--------+          |          |           |                 |           |           // 
-   &trans     &ug_on       &ug_off     &kp C_VOL_DN   &kp C_MUTE   &kp C_VOL_UP    &kp C_MUTE     &mkp LCLK   &kp LEFT   &kp DOWN   &kp RIGHT    &kp LG(LS(N4))   &kp PG_DN    &kp F13
-//-----------------------|            |              |            |              |             |    |        |          |          |           |         |-------------------------------//  
-                            &trans         &trans       &trans        &trans        &trans            &trans    &trans    &trans      &trans     &trans
-//                       +------------|--------------|------------|--------------|-------------+    +--------|----------|----------|-----------|---------+                               //
+// ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬────────────────╮                                 ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
+  &usb_tog OUT_TOG ESCAPE &btkp 0 F1   &btkp 1 F2      &btkp 2 F3      &btkp 3 F4      &btkp 4 F5 /*|                                 |*/   &kp F6         &kp F7          &kp F8          &kp F9          &kp F10         &kp F11
+      &kp LS(TAB)      &mac_talk       ___             &kp C_PREV      &kp C_PP        &kp C_NEXT /*├─────────────╮     ╭─────────────┤*/   &kp LG(LEFT)   &kp UP          &kp LG(RIGHT)   &mac_cap_app    &kp PG_UP       &kp F12
+      ___              &ug_on          &ug_off         &kp C_VOL_DN    &kp C_MUTE      &kp C_VOL_UP     &kp C_MUTE         &mkp LCLK        &kp LEFT       &kp DOWN        &kp RIGHT       &kp LG(LS(N4))  &kp PG_DN       &kp F13
+/* ╰───────────────┴───────────────┤*/ ___             ___             ___             ___              ___                ___              ___            ___             ___             ___      //├───────────────┴───────────────╯
+//                                 ╰───────────────┴───────────────┴───────────────┴────────────────┴─────────────╯     ╰─────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             >;
-
         };
 
         windows_f_keys_layer {
             display-name = "F Keys (Win)";
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &scroll_up_down>;
             bindings = <
-//-------------------------------------------------------------------------------+                           +---------------------------------------------------------------------------//
-//          |            |            |              |            |              |                           |          |          |           |                 |           |           // 
-  &usb_tog OUT_TOG ESCAPE
-              &btkp 0 F1   &btkp 1 F2    &btkp 2 F3    &btkp 3 F4   &btkp 4 F5                                  &kp F6    &kp F7      &kp F8         &kp F9        &kp F10     &kp F11
-//          |            |            |              |            |              |                           |          |          |           |                 |           |           // 
-  &kp LS(TAB) &kp LG(H)      &trans      &kp C_PREV    &kp C_PP     &kp C_NEXT                                  &kp HOME  &kp UP      &kp END  &kp LA(PRINTSCREEN) &kp PG_UP   &kp F12
-//          |            |            |              |            |              +-------------+    +--------+          |          |           |                 |           |           // 
-   &trans     &ug_on        &ug_off      &kp C_VOL_DN   &kp C_MUTE   &kp C_VOL_UP    &kp C_MUTE     &mkp LCLK   &kp LEFT   &kp DOWN   &kp RIGHT    &kp LG(LS(S))    &kp PG_DN   &kp F13
-//-----------------------|            |              |            |              |             |    |        |          |          |           |         |-------------------------------//  
-                            &trans         &trans       &trans        &trans        &trans            &trans    &trans    &trans      &trans     &trans
-//                       +------------|--------------|------------|--------------|-------------+    +--------|----------|----------|-----------|---------+                               //
+// ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬────────────────╮                                 ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
+  &usb_tog OUT_TOG ESCAPE &btkp 0 F1   &btkp 1 F2      &btkp 2 F3      &btkp 3 F4      &btkp 4 F5 /*|                                 |*/   &kp F6         &kp F7          &kp F8          &kp F9          &kp F10         &kp F11
+      &kp LS(TAB)      &mac_talk       ___             &kp C_PREV      &kp C_PP        &kp C_NEXT /*├─────────────╮     ╭─────────────┤*/   &kp HOME       &kp UP          &kp END         &kp LA(PSCRN)   &kp PG_UP       &kp F12
+      ___              &ug_on          &ug_off         &kp C_VOL_DN    &kp C_MUTE      &kp C_VOL_UP    &kp C_MUTE          &mkp LCLK        &kp LEFT       &kp DOWN        &kp RIGHT       &kp LG(LS(S))   &kp PG_DN       &kp F13
+/* ╰───────────────┴───────────────┤*/ ___             ___             ___             ___             ___                 ___              ___            ___             ___             ___      //├───────────────┴───────────────╯
+//                                 ╰───────────────┴───────────────┴───────────────┴────────────────┴─────────────╯     ╰─────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             >;
 
         };
@@ -326,19 +320,14 @@
             display-name = "Settings";
             sensor-bindings = <&bri_adjust &inc_dec_kp LEFT RIGHT>;
             bindings = <
-//---------------------------------------------------------------------------------------+                        +------------------------------------------------------------------//
-//          |              |              |              |              |                |                        |          |          |          |          |          |           // 
- &out OUT_TOG   &btsel 0        &btsel 1      &btsel 2        &btsel 3       &btsel 4                                &trans     &kp N7     &kp N8     &kp N9     &trans     &trans
-//          |              |              |              |              |                |                        |          |          |          |          |          |           // 
-    &trans       &trans         &trans     &rgb_ug RGB_EFF  &color_ug     &rgb_ug RGB_EFF                            &trans     &kp N4     &kp N5     &kp N6     &trans     &trans
-//          |              |              |              |              |                +--------+     +---------|          |          |          |          |          |           // 
-    &trans       &trans     &bt BT_CLR   &rgb_ug RGB_SPI  &white_ug     &rgb_ug RGB_SPI  &trans         &trans     &trans     &kp N1     &kp N2     &kp N3     &trans     &trans
-//-------------------------|              |              |              |                |        |     |         |          |          |          |          |----------------------//
-                               &trans          &df_win        &trans        &df_mac        &trans         &trans     &trans     &kp N0     &trans     &trans
-//                         +--------------|--------------|--------------|----------------|--------+     +----------|---------|----------|----------|----------+                      //
+// ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬────────────────╮                                 ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
+      &out OUT_TOG     &btkp 0 N1      &btkp 1 N2      &btkp 2 N3      &btkp 3 N4     &btkp 4 N5  /*|                                 |*/   &kp N6         &kp N7          &kp N8          &kp N9          &kp N0          ___
+      ___              ___             ___             &rgb_ug RGB_EFF &color_ug  &rgb_ug RGB_EFF /*├─────────────╮     ╭─────────────┤*/   ___            &kp N4          &kp N5          &kp N6          ___             ___
+      ___              ___             &btclr_kp X X   &rgb_ug RGB_SPI &white_ug      &rgb_ug RGB_SPI   ___                  ___            ___            &kp N1          &kp N2          &kp N3          ___             ___
+/* ╰───────────────┴───────────────┤*/ ___             &df_win         ___            &df_mac           ___                  ___            ___            &kp N0          ___             ___      //├───────────────┴───────────────╯
+//                                 ╰───────────────┴───────────────┴───────────────┴────────────────┴─────────────╯     ╰─────────────┴───────────────┴───────────────┴───────────────┴───────────────╯   
             >;
         };
-
 
         // Extra layers for ZMK Studio
         extra1 {
