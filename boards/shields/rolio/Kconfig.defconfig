@@ -13,6 +13,9 @@ if SHIELD_ROLIO_LEFT || SHIELD_ROLIO_RIGHT
 config ZMK_SPLIT
     default y
 
+config ZMK_POINTING
+    default y
+
 endif
 
 if ZMK_BACKLIGHT
