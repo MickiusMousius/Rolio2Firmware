@@ -8,6 +8,9 @@
 #include <dt-bindings/led/led.h>
 #include "rolio46-layout.dtsi"
 #include "control_gpio_behavior.dtsi"
+#include <dt-bindings/zmk/input_transform.h>
+#include <input/processors.dtsi>
+
 
 &rolio46_layout {
     kscan = <&kscan0>;
@@ -85,7 +88,6 @@
 
 };
 
-
 / {
     split_inputs {
         #address-cells = <1>;
@@ -101,10 +103,11 @@
         compatible = "zmk,input-listener";
         status = "disabled";
         device = <&glidepoint_split>;
+        input-processors 
+            = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP)>
+            , <&zip_xy_scaler 3 1>;
     };
 };
-
-
 
 &i2c0 {
     status = "disabled";
