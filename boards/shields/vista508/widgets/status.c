@@ -25,10 +25,27 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/endpoints.h>
 #include <zmk/keymap.h>
 #include <zmk/wpm.h>
-#include <zmk/backlight.h>
-#include <zmk/rgb_underglow.h>
+#include <zmk/split/central.h>
+
+LV_IMG_DECLARE(bolt);
+LV_IMG_DECLARE(gear_icon);
+LV_IMG_DECLARE(disconnected_icon);
+
+// Construct the warning animation
+LV_IMG_DECLARE(warning_dark);
+LV_IMG_DECLARE(warning_light);
+const lv_img_dsc_t *warning_imgs[] = {
+    &warning_dark,
+    &warning_light,
+};
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
+
+struct battery_state {
+    uint8_t source;
+    uint8_t level;
+    bool usb_present;
+};
 
 struct output_status_state {
     struct zmk_endpoint_instance selected_endpoint;
@@ -46,119 +63,125 @@ struct wpm_status_state {
     uint8_t wpm;
 };
 
-static void draw_top(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
-    lv_obj_t *canvas = lv_obj_get_child(widget, 0);
-
-    lv_draw_label_dsc_t label_dsc;
-    init_label_dsc(&label_dsc, LVGL_FOREGROUND, &lv_font_montserrat_16, LV_TEXT_ALIGN_RIGHT);
-    lv_draw_label_dsc_t label_dsc_wpm;
-    init_label_dsc(&label_dsc_wpm, LVGL_FOREGROUND, &lv_font_montserrat_12, LV_TEXT_ALIGN_RIGHT);
-    lv_draw_label_dsc_t label_setting;
-    init_label_dsc(&label_setting, LVGL_FOREGROUND, &lv_font_montserrat_16, LV_TEXT_ALIGN_LEFT);
-    lv_draw_label_dsc_t label_setting_val;
-    init_label_dsc(&label_setting_val, LVGL_FOREGROUND, &lv_font_montserrat_16,
-                   LV_TEXT_ALIGN_RIGHT);
+static void draw_battery(lv_obj_t *canvas, uint8_t xOffset, struct battery_info batt_info) {
     lv_draw_rect_dsc_t rect_black_dsc;
     init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
     lv_draw_rect_dsc_t rect_white_dsc;
     init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
+
+    uint8_t yOffset = 1;
+
+    lv_canvas_draw_rect(canvas, xOffset + 0, yOffset + 2, 29, 12, &rect_white_dsc);
+    lv_canvas_draw_rect(canvas, xOffset + 1, yOffset + 3, 27, 10, &rect_black_dsc);
+    lv_canvas_draw_rect(canvas, xOffset + 2, yOffset + 4, (batt_info.level + 2) / 4, 8,
+                        &rect_white_dsc);
+    lv_canvas_draw_rect(canvas, xOffset + 29, yOffset + 5, 3, 6, &rect_white_dsc);
+    lv_canvas_draw_rect(canvas, xOffset + 28, yOffset + 6, 3, 4, &rect_black_dsc);
+    if (batt_info.level >= 98) {
+        lv_canvas_draw_rect(canvas, xOffset + 27, yOffset + 7, 3, 2, &rect_white_dsc);
+    }
+
+    if (batt_info.usb_present) {
+        lv_draw_img_dsc_t img_dsc;
+        lv_draw_img_dsc_init(&img_dsc);
+        lv_canvas_draw_img(canvas, xOffset + 9, yOffset - 1, &bolt, &img_dsc);
+    }
+}
+
+static void draw_battery_info(lv_obj_t *widget, lv_color_t cbuf[],
+                              const struct status_state *state) {
+    lv_obj_t *canvas = lv_obj_get_child(widget, 0);
+
+    lv_draw_rect_dsc_t rect_black_dsc;
+    init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
+    // Fill background
+    lv_canvas_draw_rect(canvas, 0, 0, CANVAS_SIZE, CANVAS_SIZE, &rect_black_dsc);
+
+    lv_draw_label_dsc_t label_left_dsc;
+    init_label_dsc(&label_left_dsc, LVGL_FOREGROUND, &lv_font_montserrat_16, LV_TEXT_ALIGN_LEFT);
+    lv_draw_label_dsc_t label_right_dsc;
+    init_label_dsc(&label_right_dsc, LVGL_FOREGROUND, &lv_font_montserrat_16, LV_TEXT_ALIGN_RIGHT);
+    char charge_text[6] = {};
+
+    // Left Battery
+    draw_battery(canvas, 0, state->batteries[0]);
+    snprintf(charge_text, sizeof(charge_text), "%d", state->batteries[0].level);
+    lv_canvas_draw_text(canvas, 36, 0, 36, &label_left_dsc, charge_text);
+    // Right battery
+    if (state->batteries[1].level < 2) {
+        lv_obj_t *art = lv_obj_get_child(widget, 4);
+        lv_obj_align(art, LV_ALIGN_TOP_RIGHT, 0, 0);
+        lv_animimg_set_duration(art, 1000);
+        lv_animimg_set_repeat_count(art, LV_ANIM_REPEAT_INFINITE);
+        lv_animimg_start(art);  
+    } else {
+        lv_obj_t *art = lv_obj_get_child(widget, 4);
+        // Hide and stop the animation
+        lv_obj_align(art, LV_ALIGN_TOP_RIGHT, 0, -30);
+        lv_animimg_set_repeat_count(art, 1);
+        lv_animimg_start(art);  
+    }
+    draw_battery(canvas, 112, state->batteries[1]);
+    snprintf(charge_text, sizeof(charge_text), "%d", state->batteries[1].level);
+    lv_canvas_draw_text(canvas, 72, 0, 36, &label_right_dsc, charge_text);
+}
+
+static void draw_wpm(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
+    lv_obj_t *canvas = lv_obj_get_child(widget, 1);
+
+    lv_draw_label_dsc_t label_dsc_wpm;
+    init_label_dsc(&label_dsc_wpm, LVGL_FOREGROUND, &lv_font_montserrat_16, LV_TEXT_ALIGN_RIGHT);
+    lv_draw_rect_dsc_t rect_black_dsc;
+    init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
+    lv_draw_rect_dsc_t rect_white_dsc;
+    init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
+    lv_draw_line_dsc_t line_thick_dsc;
+    init_line_dsc(&line_thick_dsc, LVGL_FOREGROUND, 2);
+    lv_draw_arc_dsc_t arc_dsc;
+    init_arc_dsc(&arc_dsc, LVGL_FOREGROUND, 2);
     lv_draw_line_dsc_t line_dsc;
     init_line_dsc(&line_dsc, LVGL_FOREGROUND, 1);
 
     // Fill background
     lv_canvas_draw_rect(canvas, 0, 0, CANVAS_SIZE, CANVAS_SIZE, &rect_black_dsc);
 
-    // Draw battery
-    draw_battery(canvas, state);
-
-    // Draw output status
-    char output_text[10] = {};
-
-    switch (state->selected_endpoint.transport) {
-    case ZMK_TRANSPORT_USB:
-        strcat(output_text, LV_SYMBOL_USB);
-        break;
-    case ZMK_TRANSPORT_BLE:
-        if (state->active_profile_bonded) {
-            if (state->active_profile_connected) {
-                strcat(output_text, LV_SYMBOL_OK);
-            } else {
-                strcat(output_text, LV_SYMBOL_CLOSE);
-            }
-        } else {
-            strcat(output_text, LV_SYMBOL_SETTINGS);
-        }
-        break;
-    }
-
-    lv_canvas_draw_text(canvas, 0, 0, CANVAS_SIZE, &label_dsc, output_text);
-
     // Draw WPM
+    const uint8_t yOffset = 0;
     const int WPM_HEIGHT = 82;
-    lv_canvas_draw_rect(canvas, 0, 21, CANVAS_SIZE, WPM_HEIGHT, &rect_white_dsc);
-    lv_canvas_draw_rect(canvas, 2, 23, CANVAS_SIZE - 4, WPM_HEIGHT - 4, &rect_black_dsc);
+    const uint8_t cornerRadius = 4;
+    // Draw the WPM Boundary - top
+    lv_point_t boxPoints[2];
+    boxPoints[0].x = 1 + cornerRadius;
+    boxPoints[0].y = yOffset + 1;
+    boxPoints[1].x = CANVAS_SIZE - cornerRadius - 1;
+    boxPoints[1].y = yOffset + 1;
+    lv_canvas_draw_line(canvas, boxPoints, 2, &line_thick_dsc);
+    lv_canvas_draw_arc(canvas, boxPoints[0].x, boxPoints[0].y + cornerRadius, cornerRadius, 180,
+                       270, &arc_dsc);
+    lv_canvas_draw_arc(canvas, boxPoints[1].x, boxPoints[1].y + cornerRadius, cornerRadius, 270, 0,
+                       &arc_dsc);
+    // Draw the WPM Boundary - bottom
+    boxPoints[0].y = yOffset + WPM_HEIGHT;
+    boxPoints[1].y = yOffset + WPM_HEIGHT;
+    lv_canvas_draw_line(canvas, boxPoints, 2, &line_thick_dsc);
+    lv_canvas_draw_arc(canvas, boxPoints[0].x, boxPoints[0].y - cornerRadius, cornerRadius, 90, 180,
+                       &arc_dsc);
+    lv_canvas_draw_arc(canvas, boxPoints[1].x, boxPoints[1].y - cornerRadius, cornerRadius, 0, 90,
+                       &arc_dsc);
+    // Draw the sides
+    boxPoints[0].x = 1;
+    boxPoints[0].y = cornerRadius + yOffset;
+    boxPoints[1].x = 1;
+    boxPoints[1].y = yOffset + WPM_HEIGHT - cornerRadius;
+    lv_canvas_draw_line(canvas, boxPoints, 2, &line_thick_dsc);
+    boxPoints[0].x = CANVAS_SIZE - 1;
+    boxPoints[1].x = CANVAS_SIZE - 1;
+    lv_canvas_draw_line(canvas, boxPoints, 2, &line_thick_dsc);
 
-    // Draw various settings values if in the settings layer
-    const int boxLeft = 5;
-    const int boxRight = 9;
-    const int boxTop = 19;
-    if (state->layer_index != 7) {
-        const int rowHeight = 18;
-        int rowOffset = 5;
-        // Get our settings state
-        bool backLightOn = zmk_backlight_is_on();
-        struct rgb_underglow_state ugState = zmk_rgb_underglow_get_state_detail();
-        // Show if the backlight is on
-        lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
-                            "Backlight:");
-        if (backLightOn) {
-            uint8_t backLightBrightness = ugState.current_effect == 1 ? 100 : ugState.color.b + 1;
-            char brightValText[5] = {};
-            sprintf(brightValText, "%i%%", backLightBrightness < 100 ? backLightBrightness : 100);
-            lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-                                &label_setting_val, brightValText);
-
-        } else {
-            lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-                                &label_setting_val, "Off");
-        }
-        // // Show backlight brightness
-        // rowOffset += rowHeight;
-        // uint8_t backLightBrightness = ugState.color.b;
-        // char brightValText[5] = {};
-        // sprintf(brightValText, "%i%%", backLightBrightness);
-        // lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
-        //                     "Brightness:");
-        // lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-        //                     &label_setting_val, brightValText);
-        // Show backlight effect
-        rowOffset += rowHeight;
-        char *effectNames[] = {"Solid", "Breathe", "Cycle", "Swirl"};
-        lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
-                            "Effect:");
-        lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-                            &label_setting_val, effectNames[ugState.current_effect]);
-        // Show backlight color
-        rowOffset += rowHeight;
-        lv_canvas_draw_text(canvas, boxLeft + 1, boxTop + rowOffset, CANVAS_SIZE, &label_setting,
-                            "Color:");
-        if (ugState.color.s == 0) {
-            lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-                                &label_setting_val, "White");
-        } else if (ugState.current_effect > 1) {
-            lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-                                &label_setting_val, "Rainbow");
-        } else {
-            lv_canvas_draw_text(canvas, boxLeft - 1, boxTop + rowOffset, CANVAS_SIZE - boxRight,
-                                &label_setting_val, "Unknown");
-        }
-        return;
-    }
-
-    // Draw the pretty graph if we're not in the settings layer
     char wpm_text[6] = {};
     snprintf(wpm_text, sizeof(wpm_text), "%d", state->wpm[WPM_SAMPLES - 1]);
-    lv_canvas_draw_text(canvas, CANVAS_SIZE - 29, 3 + WPM_HEIGHT, 24, &label_dsc_wpm, wpm_text);
+    lv_canvas_draw_text(canvas, CANVAS_SIZE - 44, 3 + WPM_HEIGHT - 21, 40, &label_dsc_wpm,
+                        wpm_text);
 
     int max = 0;
     int min = 256;
@@ -181,14 +204,14 @@ static void draw_top(lv_obj_t *widget, lv_color_t cbuf[], const struct status_st
     lv_point_t points[WPM_SAMPLES];
     for (int i = 0; i < WPM_SAMPLES; i++) {
         points[i].x = 3 + i * WPM_COLUMN_WIDTH;
-        points[i].y = 19 + WPM_HEIGHT - (state->wpm[i] - min) * (WPM_HEIGHT - 7) / range;
+        points[i].y = yOffset - 1 + WPM_HEIGHT - (state->wpm[i] - min) * (WPM_HEIGHT - 7) / range;
     }
     lv_canvas_draw_line(canvas, points, WPM_SAMPLES, &line_dsc);
 }
 
-static void darw_bluetooth_profile(lv_obj_t *widget, lv_color_t cbuf[],
-                                   const struct status_state *state) {
-    lv_obj_t *canvas = lv_obj_get_child(widget, 1);
+static void draw_output_info(lv_obj_t *widget, lv_color_t cbuf[],
+                             const struct status_state *state) {
+    lv_obj_t *canvas = lv_obj_get_child(widget, 2);
 
     lv_draw_rect_dsc_t rect_black_dsc;
     init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
@@ -196,8 +219,16 @@ static void darw_bluetooth_profile(lv_obj_t *widget, lv_color_t cbuf[],
     init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
     lv_draw_arc_dsc_t arc_dsc;
     init_arc_dsc(&arc_dsc, LVGL_FOREGROUND, 2);
+    lv_draw_arc_dsc_t arc_dsc_thin;
+    init_arc_dsc(&arc_dsc_thin, LVGL_FOREGROUND, 1);
     lv_draw_arc_dsc_t arc_dsc_filled;
     init_arc_dsc(&arc_dsc_filled, LVGL_FOREGROUND, 9);
+    lv_draw_arc_dsc_t arc_dsc_filled_background;
+    init_arc_dsc(&arc_dsc_filled_background, LVGL_BACKGROUND, 9);
+    lv_draw_line_dsc_t line_dsc;
+    init_line_dsc(&line_dsc, LVGL_FOREGROUND, 2);
+    lv_draw_line_dsc_t line_thick_dsc;
+    init_line_dsc(&line_thick_dsc, LVGL_FOREGROUND, 5);
     lv_draw_label_dsc_t label_dsc;
     init_label_dsc(&label_dsc, LVGL_FOREGROUND, &lv_font_montserrat_18, LV_TEXT_ALIGN_CENTER);
     lv_draw_label_dsc_t label_dsc_black;
@@ -206,31 +237,101 @@ static void darw_bluetooth_profile(lv_obj_t *widget, lv_color_t cbuf[],
     // Fill background
     lv_canvas_draw_rect(canvas, 0, 0, CANVAS_SIZE, CANVAS_SIZE, &rect_black_dsc);
 
-    // Draw circles
-    int circle_offsets[5][2] = {
-        {14, 13}, {43, 13}, {72, 13}, {101, 13}, {130, 13},
-    };
+    bool usingUsb = false;
+    bool profileConnected = false;
+    bool profileAdvertising = false;
+    if (state->selected_endpoint.transport == ZMK_TRANSPORT_USB) {
+        usingUsb = true;
+    }
+    if (state->active_profile_bonded) {
+        if (state->active_profile_connected) {
+            profileConnected = true;
+        }
+    } else {
+        profileAdvertising = true;
+    }
 
+    if (usingUsb) {
+        // Draw the pill outline
+        lv_canvas_draw_arc(canvas, 15, 14, 13, 90, 270, &arc_dsc);
+        lv_canvas_draw_arc(canvas, 95, 14, 13, 270, 90, &arc_dsc);
+        lv_point_t points[2];
+        points[0].x = 15;
+        points[0].y = 2;
+        points[1].x = 95;
+        points[1].y = 2;
+        lv_canvas_draw_line(canvas, points, 2, &line_dsc);
+        points[0].y = 26;
+        points[1].y = 26;
+        lv_canvas_draw_line(canvas, points, 2, &line_dsc);
+        // Draw the pill fill
+        lv_canvas_draw_arc(canvas, 15, 14, 9, 0, 359, &arc_dsc_filled);
+        lv_canvas_draw_arc(canvas, 95, 14, 9, 0, 359, &arc_dsc_filled);
+        lv_canvas_draw_rect(canvas, 15, 5, 80, 18, &rect_white_dsc);
+        // Draw the label
+        lv_canvas_draw_text(canvas, 5, 4, 100, &label_dsc_black, "USB Out");
+        // Draw the current profile indicator
+        uint8_t xOffset = 129;
+        uint8_t yOffset = 14;
+        char profileNumber[4] = {};
+        sprintf(profileNumber, "%d", (uint8_t)state->active_profile_index + 1);
+        if (profileConnected) {
+            lv_canvas_draw_arc(canvas, xOffset, yOffset, 13, 0, 359, &arc_dsc);
+            lv_canvas_draw_arc(canvas, xOffset, yOffset, 9, 0, 359, &arc_dsc_filled);
+            lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black,
+                                profileNumber);
+        } else if (profileAdvertising) {
+            lv_draw_img_dsc_t img_dsc;
+            lv_draw_img_dsc_init(&img_dsc);
+            lv_canvas_draw_img(canvas, xOffset - 14, yOffset - 14, &gear_icon, &img_dsc);
+            lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black,
+                                profileNumber);
+        } else {
+            lv_draw_img_dsc_t img_dsc;
+            lv_draw_img_dsc_init(&img_dsc);
+            lv_canvas_draw_img(canvas, xOffset - 14, yOffset - 14, &disconnected_icon, &img_dsc);
+            lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black,
+                                profileNumber);
+        }
+        return;
+    }
+
+    // Draw circles
+    uint8_t xOffset = 15;
+    uint8_t yOffset = 15;
     for (int i = 0; i < 5; i++) {
         bool selected = i == state->active_profile_index;
 
-        lv_canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 13, 0, 359,
-                           &arc_dsc);
-
-        if (selected) {
-            lv_canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 9, 0, 359,
-                               &arc_dsc_filled);
-        }
-
         char label[2];
         snprintf(label, sizeof(label), "%d", i + 1);
-        lv_canvas_draw_text(canvas, circle_offsets[i][0] - 8, circle_offsets[i][1] - 10, 16,
-                            (selected ? &label_dsc_black : &label_dsc), label);
+
+        if (selected) {
+            if (profileAdvertising) {
+                lv_draw_img_dsc_t img_dsc;
+                lv_draw_img_dsc_init(&img_dsc);
+                lv_canvas_draw_img(canvas, xOffset - 14, yOffset - 14, &gear_icon, &img_dsc);
+                lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black, label);
+            } else if (profileConnected) {
+                lv_canvas_draw_arc(canvas, xOffset, yOffset, 13, 0, 359, &arc_dsc);
+                lv_canvas_draw_arc(canvas, xOffset, yOffset, 9, 0, 359, &arc_dsc_filled);
+                lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black, label);
+            } else {
+                lv_draw_img_dsc_t img_dsc;
+                lv_draw_img_dsc_init(&img_dsc);
+                lv_canvas_draw_img(canvas, xOffset - 14, yOffset - 14, &disconnected_icon,
+                                   &img_dsc);
+                lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black, label);
+            }
+        } else {
+            lv_canvas_draw_arc(canvas, xOffset, yOffset, 13, 0, 359, &arc_dsc);
+            lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc, label);
+        }
+        xOffset += 29;
     }
 }
 
-static void draw_layer_name(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
-    lv_obj_t *canvas = lv_obj_get_child(widget, 2);
+static void draw_layer_info(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
+    lv_obj_t *canvas = lv_obj_get_child(widget, 3);
 
     lv_draw_rect_dsc_t rect_black_dsc;
     init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
@@ -252,38 +353,56 @@ static void draw_layer_name(lv_obj_t *widget, lv_color_t cbuf[], const struct st
     }
 }
 
-static void set_battery_status(struct zmk_widget_status *widget,
-                               struct battery_status_state state) {
-#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-    widget->state.charging = state.usb_present;
-#endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
+static void set_battery_status(struct zmk_widget_status *widget, struct battery_state state) {
+    if (state.source >= 2) {
+        return;
+    }
+    LOG_DBG("Source: %d, level: %d, usb: %d", state.source, state.level, state.usb_present);
+    widget->state.batteries[state.source].level = state.level;
+    widget->state.batteries[state.source].usb_present = state.usb_present;
 
-    widget->state.battery = state.level;
-
-    draw_top(widget->obj, widget->cbuf, &widget->state);
+    draw_battery_info(widget->obj, widget->cbuf0, &widget->state);
 }
 
-static void battery_status_update_cb(struct battery_status_state state) {
+void battery_status_update_cb(struct battery_state state) {
     struct zmk_widget_status *widget;
     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_battery_status(widget, state); }
 }
 
-static struct battery_status_state battery_status_get_state(const zmk_event_t *eh) {
-    return (struct battery_status_state){
-        .level = zmk_battery_state_of_charge(),
+static struct battery_state peripheral_battery_status_get_state(const zmk_event_t *eh) {
+    const struct zmk_peripheral_battery_state_changed *ev =
+        as_zmk_peripheral_battery_state_changed(eh);
+    return (struct battery_state){
+        .source = ev->source + 1,
+        .level = ev->state_of_charge,
+    };
+}
+
+static struct battery_state central_battery_status_get_state(const zmk_event_t *eh) {
+    const struct zmk_battery_state_changed *ev = as_zmk_battery_state_changed(eh);
+    return (struct battery_state){
+        .source = 0,
+        .level = (ev != NULL) ? ev->state_of_charge : zmk_battery_state_of_charge(),
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
         .usb_present = zmk_usb_is_powered(),
 #endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
     };
 }
 
-ZMK_DISPLAY_WIDGET_LISTENER(widget_battery_status, struct battery_status_state,
-                            battery_status_update_cb, battery_status_get_state)
+static struct battery_state battery_status_get_state(const zmk_event_t *eh) {
+    if (as_zmk_peripheral_battery_state_changed(eh) != NULL) {
+        return peripheral_battery_status_get_state(eh);
+    } else {
+        return central_battery_status_get_state(eh);
+    }
+}
 
+ZMK_DISPLAY_WIDGET_LISTENER(widget_battery_status, struct battery_state, battery_status_update_cb,
+                            battery_status_get_state)
+
+ZMK_SUBSCRIPTION(widget_battery_status, zmk_peripheral_battery_state_changed);
 ZMK_SUBSCRIPTION(widget_battery_status, zmk_battery_state_changed);
-#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
 ZMK_SUBSCRIPTION(widget_battery_status, zmk_usb_conn_state_changed);
-#endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
 
 static void set_output_status(struct zmk_widget_status *widget,
                               const struct output_status_state *state) {
@@ -292,8 +411,8 @@ static void set_output_status(struct zmk_widget_status *widget,
     widget->state.active_profile_connected = state->active_profile_connected;
     widget->state.active_profile_bonded = state->active_profile_bonded;
 
-    draw_top(widget->obj, widget->cbuf, &widget->state);
-    darw_bluetooth_profile(widget->obj, widget->cbuf2, &widget->state);
+    draw_wpm(widget->obj, widget->cbuf1, &widget->state);
+    draw_output_info(widget->obj, widget->cbuf2, &widget->state);
 }
 
 static void output_status_update_cb(struct output_status_state state) {
@@ -325,7 +444,7 @@ static void set_layer_status(struct zmk_widget_status *widget, struct layer_stat
     widget->state.layer_index = state.index;
     widget->state.layer_label = state.label;
 
-    draw_layer_name(widget->obj, widget->cbuf3, &widget->state);
+    draw_layer_info(widget->obj, widget->cbuf3, &widget->state);
 }
 
 static void layer_status_update_cb(struct layer_status_state state) {
@@ -349,7 +468,7 @@ static void set_wpm_status(struct zmk_widget_status *widget, struct wpm_status_s
     }
     widget->state.wpm[WPM_SAMPLES - 1] = state.wpm;
 
-    draw_top(widget->obj, widget->cbuf, &widget->state);
+    draw_wpm(widget->obj, widget->cbuf1, &widget->state);
 }
 
 static void wpm_status_update_cb(struct wpm_status_state state) {
@@ -368,23 +487,32 @@ ZMK_SUBSCRIPTION(widget_wpm_status, zmk_wpm_state_changed);
 int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
     lv_obj_set_size(widget->obj, 144, 168);
-    lv_obj_t *top = lv_canvas_create(widget->obj);
-    lv_obj_align(top, LV_ALIGN_TOP_LEFT, 0, 0);
-    lv_canvas_set_buffer(top, widget->cbuf, CANVAS_SIZE, CANVAS_SIZE, LV_IMG_CF_TRUE_COLOR);
-    // Bluetooth connection widget
-    lv_obj_t *middle = lv_canvas_create(widget->obj);
-    lv_obj_align(middle, LV_ALIGN_TOP_LEFT, 0, 110);
-    lv_canvas_set_buffer(middle, widget->cbuf2, CANVAS_SIZE, CANVAS_SIZE, LV_IMG_CF_TRUE_COLOR);
-    // Layer Label Widget
+
+    lv_obj_t *batteryArea = lv_canvas_create(widget->obj);
+    lv_obj_align(batteryArea, LV_ALIGN_TOP_LEFT, 0, 0);
+    lv_canvas_set_buffer(batteryArea, widget->cbuf0, CANVAS_SIZE, 20, LV_IMG_CF_TRUE_COLOR);
+
+    lv_obj_t *wpmArea = lv_canvas_create(widget->obj);
+    lv_obj_align(wpmArea, LV_ALIGN_TOP_LEFT, 0, 21);
+    lv_canvas_set_buffer(wpmArea, widget->cbuf1, CANVAS_SIZE, 91, LV_IMG_CF_TRUE_COLOR);
+
+    lv_obj_t *outputInfoArea = lv_canvas_create(widget->obj);
+    lv_obj_align(outputInfoArea, LV_ALIGN_TOP_LEFT, 0, 112);
+    lv_canvas_set_buffer(outputInfoArea, widget->cbuf2, CANVAS_SIZE, 30, LV_IMG_CF_TRUE_COLOR);
+
     lv_obj_t *bottom = lv_canvas_create(widget->obj);
-    lv_obj_align(bottom, LV_ALIGN_TOP_MID, 0, 136);
-    lv_canvas_set_buffer(bottom, widget->cbuf3, CANVAS_SIZE, CANVAS_SIZE, LV_IMG_CF_TRUE_COLOR);
+    lv_obj_align(bottom, LV_ALIGN_TOP_LEFT, 0, 142);
+    lv_canvas_set_buffer(bottom, widget->cbuf3, CANVAS_SIZE, 26, LV_IMG_CF_TRUE_COLOR);
+
+    lv_obj_t *art = lv_animimg_create(widget->obj);
+    lv_obj_center(art);
+    lv_animimg_set_src(art, (const void **)warning_imgs, 2);
 
     sys_slist_append(&widgets, &widget->node);
-    widget_battery_status_init();
     widget_output_status_init();
     widget_layer_status_init();
     widget_wpm_status_init();
+    widget_battery_status_init();
 
     return 0;
 }
