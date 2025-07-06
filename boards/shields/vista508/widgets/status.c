@@ -514,24 +514,24 @@ int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
 
     lv_obj_t *batteryArea = lv_canvas_create(widget->obj);
     lv_obj_align(batteryArea, LV_ALIGN_TOP_LEFT, 0, 0);
-    lv_canvas_set_buffer(batteryArea, widget->cbuf0, DISPLAY_WIDTH, DISPLAY_HEIGHT,
+    lv_canvas_set_buffer(batteryArea, widget->cbuf0, DISPLAY_WIDTH, WIDGET_HEIGHT_BATTERY,
                          LV_IMG_CF_TRUE_COLOR);
 
     lv_obj_t *wpmArea = lv_canvas_create(widget->obj);
     lv_obj_align(wpmArea, LV_ALIGN_TOP_LEFT, 0, WIDGET_HEIGHT_BATTERY + 1);
-    lv_canvas_set_buffer(wpmArea, widget->cbuf1, DISPLAY_WIDTH, DISPLAY_HEIGHT,
+    lv_canvas_set_buffer(wpmArea, widget->cbuf1, DISPLAY_WIDTH, WIDGET_HEIGHT_WPM,
                          LV_IMG_CF_TRUE_COLOR);
 
     lv_obj_t *outputInfoArea = lv_canvas_create(widget->obj);
     lv_obj_align(outputInfoArea, LV_ALIGN_TOP_LEFT, 0,
                  WIDGET_HEIGHT_BATTERY + WIDGET_HEIGHT_WPM + 1);
-    lv_canvas_set_buffer(outputInfoArea, widget->cbuf2, DISPLAY_WIDTH, DISPLAY_HEIGHT,
+    lv_canvas_set_buffer(outputInfoArea, widget->cbuf2, DISPLAY_WIDTH, WIDGET_HEIGHT_OUTPUT,
                          LV_IMG_CF_TRUE_COLOR);
 
     lv_obj_t *bottom = lv_canvas_create(widget->obj);
     lv_obj_align(bottom, LV_ALIGN_TOP_LEFT, 0,
                  WIDGET_HEIGHT_BATTERY + WIDGET_HEIGHT_WPM + WIDGET_HEIGHT_OUTPUT + 1);
-    lv_canvas_set_buffer(bottom, widget->cbuf3, DISPLAY_WIDTH, DISPLAY_HEIGHT,
+    lv_canvas_set_buffer(bottom, widget->cbuf3, DISPLAY_WIDTH, WIDGET_HEIGHT_LAYER,
                          LV_IMG_CF_TRUE_COLOR);
 
     lv_obj_t *art = lv_animimg_create(widget->obj);

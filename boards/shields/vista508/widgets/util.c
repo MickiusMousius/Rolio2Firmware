@@ -17,11 +17,11 @@ void rotate_canvas(lv_obj_t *canvas, lv_color_t cbuf[], uint8_t widget_height) {
     img.data = (void *)cbuf_tmp;
     img.header.cf = LV_IMG_CF_TRUE_COLOR;
     img.header.w = DISPLAY_WIDTH;
-    img.header.h = DISPLAY_HEIGHT;
+    img.header.h = widget_height;
 
-    lv_canvas_fill_bg(canvas, LVGL_BACKGROUND, LV_OPA_COVER);
-    // lv_canvas_transform(canvas, &img, 900, LV_IMG_ZOOM_NONE, -1, 0, CANVAS_SIZE / 2,
-    //                     CANVAS_SIZE / 2, false);
+    // lv_canvas_fill_bg(canvas, LVGL_BACKGROUND, LV_OPA_COVER);
+    //  lv_canvas_transform(canvas, &img, 900, LV_IMG_ZOOM_NONE, -1, 0, CANVAS_SIZE / 2,
+    //                      CANVAS_SIZE / 2, false);
 
     /*
     void lv_canvas_transform(lv_obj_t * obj
