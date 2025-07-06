@@ -14,10 +14,10 @@
 struct zmk_widget_status {
     sys_snode_t node;
     lv_obj_t *obj;
-    lv_color_t cbuf0[CANVAS_SIZE * CANVAS_SIZE];
-    lv_color_t cbuf1[CANVAS_SIZE * CANVAS_SIZE];
-    lv_color_t cbuf2[CANVAS_SIZE * CANVAS_SIZE];
-    lv_color_t cbuf3[CANVAS_SIZE * CANVAS_SIZE];
+    lv_color_t cbuf0[DISPLAY_WIDTH * DISPLAY_HEIGHT];
+    lv_color_t cbuf1[DISPLAY_WIDTH * DISPLAY_HEIGHT];
+    lv_color_t cbuf2[DISPLAY_WIDTH * DISPLAY_HEIGHT];
+    lv_color_t cbuf3[DISPLAY_WIDTH * DISPLAY_HEIGHT];
     lv_color_t cbuf4[75 * 21];
     struct status_state state;
 };
