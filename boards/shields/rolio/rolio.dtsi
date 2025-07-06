@@ -88,6 +88,7 @@
 
 };
 
+
 / {
     split_inputs {
         #address-cells = <1>;
@@ -105,7 +106,8 @@
         device = <&glidepoint_split>;
         input-processors 
             = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP)>
-            , <&zip_xy_scaler 3 1>;
+            , <&zip_xy_scaler 3 1>
+            , <&zip_temp_layer 8 5000>;
     };
 };
 
