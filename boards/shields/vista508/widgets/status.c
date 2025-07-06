@@ -116,7 +116,11 @@ static void draw_battery_info(lv_obj_t *widget, lv_color_t cbuf[],
     // Right battery
     if (state->batteries[1].level < 2) {
         lv_obj_t *art = lv_obj_get_child(widget, 4);
+#ifdef ROTATE_CANVAS_180
+        lv_obj_align(art, LV_ALIGN_TOP_LEFT, 0, 168 - WIDGET_HEIGHT_BATTERY);
+#else
         lv_obj_align(art, LV_ALIGN_TOP_RIGHT, 0, 0);
+#endif
         lv_animimg_set_duration(art, 1000);
         lv_animimg_set_repeat_count(art, LV_ANIM_REPEAT_INFINITE);
         lv_animimg_start(art);
@@ -512,6 +516,32 @@ int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
     lv_obj_set_size(widget->obj, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
+#ifdef ROTATE_CANVAS_180
+    uint8_t yOffset = DISPLAY_HEIGHT - WIDGET_HEIGHT_BATTERY;
+    lv_obj_t *batteryArea = lv_canvas_create(widget->obj);
+    lv_obj_align(batteryArea, LV_ALIGN_TOP_LEFT, 0, yOffset);
+    lv_canvas_set_buffer(batteryArea, widget->cbuf0, DISPLAY_WIDTH, WIDGET_HEIGHT_BATTERY,
+                         LV_IMG_CF_TRUE_COLOR);
+
+    yOffset -= WIDGET_HEIGHT_WPM;
+    lv_obj_t *wpmArea = lv_canvas_create(widget->obj);
+    lv_obj_align(wpmArea, LV_ALIGN_TOP_LEFT, 0,
+                 yOffset + 5); // TODO, sane cetering of the WPM widget
+    lv_canvas_set_buffer(wpmArea, widget->cbuf1, DISPLAY_WIDTH, WIDGET_HEIGHT_WPM,
+                         LV_IMG_CF_TRUE_COLOR);
+
+    yOffset -= WIDGET_HEIGHT_OUTPUT;
+    lv_obj_t *outputInfoArea = lv_canvas_create(widget->obj);
+    lv_obj_align(outputInfoArea, LV_ALIGN_TOP_LEFT, 0, yOffset - 1);
+    lv_canvas_set_buffer(outputInfoArea, widget->cbuf2, DISPLAY_WIDTH, WIDGET_HEIGHT_OUTPUT,
+                         LV_IMG_CF_TRUE_COLOR);
+
+    yOffset -= WIDGET_HEIGHT_LAYER;
+    lv_obj_t *bottom = lv_canvas_create(widget->obj);
+    lv_obj_align(bottom, LV_ALIGN_TOP_LEFT, 0, yOffset + 2);
+    lv_canvas_set_buffer(bottom, widget->cbuf3, DISPLAY_WIDTH, WIDGET_HEIGHT_LAYER,
+                         LV_IMG_CF_TRUE_COLOR);
+#else
     lv_obj_t *batteryArea = lv_canvas_create(widget->obj);
     lv_obj_align(batteryArea, LV_ALIGN_TOP_LEFT, 0, 0);
     lv_canvas_set_buffer(batteryArea, widget->cbuf0, DISPLAY_WIDTH, WIDGET_HEIGHT_BATTERY,
@@ -533,6 +563,7 @@ int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
                  WIDGET_HEIGHT_BATTERY + WIDGET_HEIGHT_WPM + WIDGET_HEIGHT_OUTPUT + 1);
     lv_canvas_set_buffer(bottom, widget->cbuf3, DISPLAY_WIDTH, WIDGET_HEIGHT_LAYER,
                          LV_IMG_CF_TRUE_COLOR);
+#endif
 
     lv_obj_t *art = lv_animimg_create(widget->obj);
     lv_obj_center(art);
