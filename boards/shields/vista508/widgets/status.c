@@ -27,6 +27,12 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/wpm.h>
 #include <zmk/split/central.h>
 
+#define WIDGET_HEIGHT_BATTERY 20
+#define WIDGET_HEIGHT_WPM 90
+#define WIDGET_HEIGHT_OUTPUT 30
+#define WIDGET_HEIGHT_LAYER 26
+#define ROTATE_CANVAS_180 true
+
 LV_IMG_DECLARE(bolt);
 LV_IMG_DECLARE(gear_icon);
 LV_IMG_DECLARE(disconnected_icon);
@@ -124,6 +130,10 @@ static void draw_battery_info(lv_obj_t *widget, lv_color_t cbuf[],
     draw_battery(canvas, 112, state->batteries[1]);
     snprintf(charge_text, sizeof(charge_text), "%d", state->batteries[1].level);
     lv_canvas_draw_text(canvas, DISPLAY_WIDTH / 2, 0, 36, &label_right_dsc, charge_text);
+
+#ifdef ROTATE_CANVAS_180
+    rotate_canvas(canvas, cbuf, WIDGET_HEIGHT_BATTERY);
+#endif
 }
 
 static void draw_wpm(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
@@ -207,6 +217,10 @@ static void draw_wpm(lv_obj_t *widget, lv_color_t cbuf[], const struct status_st
         points[i].y = yOffset - 1 + WPM_HEIGHT - (state->wpm[i] - min) * (WPM_HEIGHT - 7) / range;
     }
     lv_canvas_draw_line(canvas, points, WPM_SAMPLES, &line_dsc);
+
+#ifdef ROTATE_CANVAS_180
+    rotate_canvas(canvas, cbuf, WPM_HEIGHT);
+#endif
 }
 
 static void draw_output_info(lv_obj_t *widget, lv_color_t cbuf[],
@@ -293,41 +307,47 @@ static void draw_output_info(lv_obj_t *widget, lv_color_t cbuf[],
             lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black,
                                 profileNumber);
         }
-        return;
-    }
+    } else {
+        // Draw circles
+        uint8_t xOffset = 15;
+        uint8_t yOffset = 15;
+        for (int i = 0; i < 5; i++) {
+            bool selected = i == state->active_profile_index;
 
-    // Draw circles
-    uint8_t xOffset = 15;
-    uint8_t yOffset = 15;
-    for (int i = 0; i < 5; i++) {
-        bool selected = i == state->active_profile_index;
+            char label[2];
+            snprintf(label, sizeof(label), "%d", i + 1);
 
-        char label[2];
-        snprintf(label, sizeof(label), "%d", i + 1);
-
-        if (selected) {
-            if (profileAdvertising) {
-                lv_draw_img_dsc_t img_dsc;
-                lv_draw_img_dsc_init(&img_dsc);
-                lv_canvas_draw_img(canvas, xOffset - 14, yOffset - 14, &gear_icon, &img_dsc);
-                lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black, label);
-            } else if (profileConnected) {
-                lv_canvas_draw_arc(canvas, xOffset, yOffset, 13, 0, 359, &arc_dsc);
-                lv_canvas_draw_arc(canvas, xOffset, yOffset, 9, 0, 359, &arc_dsc_filled);
-                lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black, label);
+            if (selected) {
+                if (profileAdvertising) {
+                    lv_draw_img_dsc_t img_dsc;
+                    lv_draw_img_dsc_init(&img_dsc);
+                    lv_canvas_draw_img(canvas, xOffset - 14, yOffset - 14, &gear_icon, &img_dsc);
+                    lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black,
+                                        label);
+                } else if (profileConnected) {
+                    lv_canvas_draw_arc(canvas, xOffset, yOffset, 13, 0, 359, &arc_dsc);
+                    lv_canvas_draw_arc(canvas, xOffset, yOffset, 9, 0, 359, &arc_dsc_filled);
+                    lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black,
+                                        label);
+                } else {
+                    lv_draw_img_dsc_t img_dsc;
+                    lv_draw_img_dsc_init(&img_dsc);
+                    lv_canvas_draw_img(canvas, xOffset - 14, yOffset - 14, &disconnected_icon,
+                                       &img_dsc);
+                    lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black,
+                                        label);
+                }
             } else {
-                lv_draw_img_dsc_t img_dsc;
-                lv_draw_img_dsc_init(&img_dsc);
-                lv_canvas_draw_img(canvas, xOffset - 14, yOffset - 14, &disconnected_icon,
-                                   &img_dsc);
-                lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc_black, label);
+                lv_canvas_draw_arc(canvas, xOffset, yOffset, 13, 0, 359, &arc_dsc);
+                lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc, label);
             }
-        } else {
-            lv_canvas_draw_arc(canvas, xOffset, yOffset, 13, 0, 359, &arc_dsc);
-            lv_canvas_draw_text(canvas, xOffset - 8, yOffset - 11, 16, &label_dsc, label);
+            xOffset += 29;
         }
-        xOffset += 29;
     }
+
+#ifdef ROTATE_CANVAS_180
+    rotate_canvas(canvas, cbuf, WIDGET_HEIGHT_OUTPUT);
+#endif
 }
 
 static void draw_layer_info(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
@@ -351,6 +371,10 @@ static void draw_layer_info(lv_obj_t *widget, lv_color_t cbuf[], const struct st
     } else {
         lv_canvas_draw_text(canvas, 0, 5, DISPLAY_WIDTH, &label_dsc, state->layer_label);
     }
+
+#ifdef ROTATE_CANVAS_180
+    rotate_canvas(canvas, cbuf, WIDGET_HEIGHT_LAYER);
+#endif
 }
 
 static void set_battery_status(struct zmk_widget_status *widget, struct battery_state state) {
@@ -486,7 +510,7 @@ ZMK_SUBSCRIPTION(widget_wpm_status, zmk_wpm_state_changed);
 
 int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
-    lv_obj_set_size(widget->obj, 144, 168);
+    lv_obj_set_size(widget->obj, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
     lv_obj_t *batteryArea = lv_canvas_create(widget->obj);
     lv_obj_align(batteryArea, LV_ALIGN_TOP_LEFT, 0, 0);
@@ -494,17 +518,19 @@ int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
                          LV_IMG_CF_TRUE_COLOR);
 
     lv_obj_t *wpmArea = lv_canvas_create(widget->obj);
-    lv_obj_align(wpmArea, LV_ALIGN_TOP_LEFT, 0, 21);
+    lv_obj_align(wpmArea, LV_ALIGN_TOP_LEFT, 0, WIDGET_HEIGHT_BATTERY + 1);
     lv_canvas_set_buffer(wpmArea, widget->cbuf1, DISPLAY_WIDTH, DISPLAY_HEIGHT,
                          LV_IMG_CF_TRUE_COLOR);
 
     lv_obj_t *outputInfoArea = lv_canvas_create(widget->obj);
-    lv_obj_align(outputInfoArea, LV_ALIGN_TOP_LEFT, 0, 112);
+    lv_obj_align(outputInfoArea, LV_ALIGN_TOP_LEFT, 0,
+                 WIDGET_HEIGHT_BATTERY + WIDGET_HEIGHT_WPM + 1);
     lv_canvas_set_buffer(outputInfoArea, widget->cbuf2, DISPLAY_WIDTH, DISPLAY_HEIGHT,
                          LV_IMG_CF_TRUE_COLOR);
 
     lv_obj_t *bottom = lv_canvas_create(widget->obj);
-    lv_obj_align(bottom, LV_ALIGN_TOP_LEFT, 0, 142);
+    lv_obj_align(bottom, LV_ALIGN_TOP_LEFT, 0,
+                 WIDGET_HEIGHT_BATTERY + WIDGET_HEIGHT_WPM + WIDGET_HEIGHT_OUTPUT + 1);
     lv_canvas_set_buffer(bottom, widget->cbuf3, DISPLAY_WIDTH, DISPLAY_HEIGHT,
                          LV_IMG_CF_TRUE_COLOR);
 
