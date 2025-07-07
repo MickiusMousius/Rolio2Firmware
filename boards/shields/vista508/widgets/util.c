@@ -8,8 +8,6 @@
 #include <zephyr/kernel.h>
 #include "util.h"
 
-LV_IMG_DECLARE(bolt);
-
 void rotate_canvas(lv_obj_t *canvas, lv_color_t cbuf[], uint8_t widget_height) {
     static lv_color_t cbuf_tmp[DISPLAY_WIDTH * DISPLAY_HEIGHT];
     memcpy(cbuf_tmp, cbuf, sizeof(cbuf_tmp));
@@ -19,22 +17,6 @@ void rotate_canvas(lv_obj_t *canvas, lv_color_t cbuf[], uint8_t widget_height) {
     img.header.w = DISPLAY_WIDTH;
     img.header.h = widget_height;
 
-    // lv_canvas_fill_bg(canvas, LVGL_BACKGROUND, LV_OPA_COVER);
-    //  lv_canvas_transform(canvas, &img, 900, LV_IMG_ZOOM_NONE, -1, 0, CANVAS_SIZE / 2,
-    //                      CANVAS_SIZE / 2, false);
-
-    /*
-    void lv_canvas_transform(lv_obj_t * obj
-                             lv_img_dsc_t * src_img,
-                             int16_t angle,
-                             uint16_t zoom,
-                             lv_coord_t offset_x,
-                             lv_coord_t offset_y,
-                             int32_t pivot_x,
-                             int32_t pivot_y,
-                             bool antialias)
-    */
-
     lv_canvas_transform(canvas,            // Target canvas
                         &img,              // Image array
                         1800,              // Angle
@@ -43,7 +25,7 @@ void rotate_canvas(lv_obj_t *canvas, lv_color_t cbuf[], uint8_t widget_height) {
                         0,                 // Output Y
                         DISPLAY_WIDTH / 2, // Rotate about center of the display
                         widget_height / 2, // Rotate about the vertical center of the widget
-                        false);
+                        false);            // Don't anti-alias
 }
 
 void init_label_dsc(lv_draw_label_dsc_t *label_dsc, lv_color_t color, const lv_font_t *font,
