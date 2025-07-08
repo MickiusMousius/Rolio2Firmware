@@ -41,9 +41,9 @@ nice_view_spi: &spi0 {
     input-type = <INPUT_EV_REL>; // For relative input devices
     track-remainders;            // Accumulate fractional movements
     min-factor = <600>;          // 0.6x at very slow speeds
-    max-factor = <3500>;         // 3.5x at fast speeds
-    speed-threshold = <1200>;    // 1200 counts/sec for 1x
-    speed-max = <5000>;          // 6000 counts/sec for max accel
+    max-factor = <5000>;         // 5x at fast speeds
+    speed-threshold = <1500>;    // 1200 counts/sec for 1x
+    speed-max = <4500>;          // 4500 counts/sec for max accel
     acceleration-exponent = <2>; // Quadratic acceleration curve
 };
 
