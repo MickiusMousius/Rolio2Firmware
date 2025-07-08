@@ -250,7 +250,7 @@
     glidepoint_listener {
         compatible = "zmk,input-listener";
         device = <&glidepoint_split>;
-        input-processors = <&zip_xy_scaler 9 2>
+        input-processors = <&zip_xy_scaler 4 1>
             , <&pointer_accel>
             , <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP)>
             , <&zip_temp_layer MOUSE_MAP 1200>;
