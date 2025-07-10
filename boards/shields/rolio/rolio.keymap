@@ -15,8 +15,6 @@
 #define ZMK_POINTING_DEFAULT_SCRL_VAL 100
 #include <dt-bindings/zmk/pointing.h>
 #include <dt-bindings/zmk/mouse.h>
-#include <input/processors.dtsi>
-#include <behaviors/input_gestures_accel.dtsi>
 
 // Helpful macros borrowed from AndrewMSHowe
 #define ___ &trans
@@ -254,7 +252,6 @@
         compatible = "zmk,input-listener";
         device = <&glidepoint_split>;
         input-processors = <&zip_xy_scaler 4 1>
-            , <&pointer_accel>
             , <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP)>
             , <&zip_temp_layer MOUSE_MAP 1200>;
 

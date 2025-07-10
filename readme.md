@@ -8,6 +8,6 @@ root@4076967e2233:/workspaces/zmk/app# rm -fr build ; west build -b "rolio3" -S 
 
 Working for both halves including cirque:
 
-root@4076967e2233:/workspaces/zmk/app# rm -fr build ; west build -b "rolio3" -S studio-rpc-usb-uart -- -DZMK_EXTRA_MODULES="/workspaces/zmk/zmk-userspace/;/workspaces/zmk/rolio/;/workspaces/zmk/zmk-gpio-behavior;/workspaces/zmk/cirque-input-module/" -DZMK_CONFIG="/workspaces/zmk/rolio/config" -DSHIELD="rolio_right"
+root@4076967e2233:/workspaces/zmk/app# rm -fr build ; west build -b "rolio3" -S studio-rpc-usb-uart -- -DZMK_EXTRA_MODULES="/workspaces/zmk/zmk-userspace/;/workspaces/zmk/rolio/;/workspaces/zmk/cirque-input-module/" -DZMK_CONFIG="/workspaces/zmk/rolio/config" -DSHIELD="rolio_right"
 
-root@4076967e2233:/workspaces/zmk/app# rm -fr build ; west build -b "rolio3" -S studio-rpc-usb-uart -- -DZMK_EXTRA_MODULES="/workspaces/zmk/zmk-userspace/;/workspaces/zmk/rolio/;/workspaces/zmk/zmk-gpio-behavior;/workspaces/zmk/cirque-input-module/;/workspaces/zmk/zmk-pointing-acceleration" -DZMK_CONFIG="/workspaces/zmk/rolio/config" -DSHIELD="rolio_left vista508"
+root@4076967e2233:/workspaces/zmk/app# rm -fr build ; west build -b "rolio3" -S studio-rpc-usb-uart -- -DZMK_EXTRA_MODULES="/workspaces/zmk/zmk-userspace/;/workspaces/zmk/rolio/;/workspaces/zmk/cirque-input-module/" -DZMK_CONFIG="/workspaces/zmk/rolio/config" -DSHIELD="rolio_left vista508"
