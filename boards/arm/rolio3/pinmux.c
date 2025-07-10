@@ -17,6 +17,9 @@ static int pinmux_rolio_init(void) {
     // Disable the haptic driver pin
     gpio_pin_configure(p0, 24, GPIO_OUTPUT);
     gpio_pin_set(p0, 24, 0);
+    // Ensure the charger is enabled
+    gpio_pin_configure(p0, 26, GPIO_OUTPUT);
+    gpio_pin_set(p0, 26, 0);
 
     return 0;
 }
