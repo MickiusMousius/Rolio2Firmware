@@ -33,7 +33,7 @@
 #define MOUSE_MAP 8
 
 &soft_off {
-    hold-time-ms = <5000>; // Only turn off it the key is held for 5 seconds or longer.
+    hold-time-ms = <3000>; // Only turn off it the key is held for 5 seconds or longer.
 };
 
 / {
