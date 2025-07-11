@@ -31,7 +31,3 @@ nice_view_spi: &spi0 {
     pinctrl-names = "default", "sleep";
     cs-gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;
 };
-
-&glidepoint_listener {
-    status = "okay";
-};
